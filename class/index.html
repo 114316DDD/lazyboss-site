@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lazyboss 원데이 클래스 — 천안·아산 1인 사업자 업무·콘텐츠 자동화</title>
+<meta name="description" content="천안·아산 1인 사업자를 위한 업무·콘텐츠 자동화 원데이 클래스. 클로드 코드로 반복 업무를 시스템으로. 8월 27일(목)·29일(토), 회차당 5명.">
+<link rel="icon" href="../assets/favicon-32.png" sizes="32x32">
+<link rel="icon" href="../assets/favicon-512.png" sizes="512x512">
+<link rel="apple-touch-icon" href="../assets/favicon-180.png">
+<style>
+  :root{
+    --navy:#0A174E; --navy-soft:#1A2867; --yellow:#F5D042; --yellow-deep:#E0B72A;
+    --paper:#ECEEE7; --paper-2:#E4E7DE; --ink:#0A174E; --dim:#5A6180;
+    --line:rgba(10,23,78,.14); --white:#FFFFFF;
+    /* motion */
+    --ease-out:cubic-bezier(.23,1,.32,1);
+    --dur-press:120ms; --dur-hover:180ms; --dur-rv:520ms;
+    /* type scale — 브랜드 홈(웹사이트/index.html)과 동일한 12단계. 새 값 추가 금지 */
+    --fs-h1:clamp(36px,6.6vw,64px); --fs-h2:clamp(30px,6vw,52px); --fs-mid:clamp(22px,4vw,32px);
+    --fs-stat:clamp(38px,7vw,62px); --fs-lead:clamp(18px,2.6vw,22px);
+    --fs-h3:20px; --fs-brand:19px; --fs-base:17px; --fs-body:16px;
+    --fs-sm:14px; --fs-label:12px; --fs-micro:11.5px;
+    /* radius 3종 · shadow 3종. 예외: 히어로 폰 목업/터미널 창(실물 형태 묘사), 리스트/타임라인 마커 */
+    --r-pill:999px; --r-card:20px; --r-sm:8px;
+    --sh-nav:0 8px 24px rgba(10,23,78,.08);
+    --sh-hover:0 10px 22px rgba(10,23,78,.14);
+    --sh-card:0 18px 38px rgba(10,23,78,.12);
+  }
+  html,body{margin:0; padding:0}
+  *{box-sizing:border-box}
+  .vrl{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
+    background:var(--paper); color:var(--ink);
+    -webkit-font-smoothing:antialiased; line-height:1.6; letter-spacing:-.01em; font-size:var(--fs-base);
+  }
+  /* No overflow guard on any sticky ancestor (html/body/.vrl) — a non-visible
+     overflow ancestor kills position:sticky on the nav. Clip per-section instead. */
+  .sec,.hero,.foot{overflow-x:clip}
+  .vrl p{margin:0}
+  /* 한글은 어절 단위로만 줄바꿈 (음절 쪼개짐 방지) */
+  .vrl p,.vrl li,.vrl h3,.vrl .nm{word-break:keep-all}
+  .inner{max-width:960px; margin:0 auto; padding:0 24px}
+
+  /* top bar */
+  .nav{position:-webkit-sticky; position:sticky; top:0; z-index:40; background:var(--paper); background:color-mix(in srgb,var(--paper) 92%,transparent); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--line)}
+  .nav .inner{display:flex; align-items:center; justify-content:space-between; min-height:70px; gap:16px; padding:12px 24px}
+  .brand{font-weight:900; font-size:var(--fs-brand); letter-spacing:-.03em; display:flex; flex-direction:column; line-height:1.15; text-decoration:none; color:var(--ink)}
+  .brand .wm{height:21px; width:auto; display:block; align-self:flex-start}
+  .brand em{font-style:normal; font-size:var(--fs-micro); font-weight:500; letter-spacing:-.01em; color:var(--dim); margin-top:5px}
+  @media(max-width:420px){.brand em{display:none}}
+  .navlinks{display:flex; align-items:center; gap:24px}
+  .navlinks a{color:var(--dim); text-decoration:none; font-size:var(--fs-sm); font-weight:500; transition:color var(--dur-hover) ease}
+  .navlinks a:not(.apply):hover{color:var(--ink)}
+  .navlinks .apply{background:var(--navy); color:var(--yellow); padding:12px 18px; border-radius:var(--r-pill); font-weight:800; font-size:var(--fs-sm)}
+  @media(max-width:640px){.navlinks a:not(.apply){display:none}}
+
+  /* section rhythm */
+  .sec{padding:96px 0}
+  .sec.tight{padding:64px 0}
+  .eyebrow{display:flex; align-items:center; gap:16px; font-size:var(--fs-label); font-weight:800; letter-spacing:.2em; color:var(--dim); text-transform:uppercase; margin-bottom:26px}
+  .eyebrow::before{content:""; width:46px; height:2px; background:var(--yellow-deep)}
+  .k-eyebrow{font-size:var(--fs-label); font-weight:800; letter-spacing:.04em; color:var(--dim); margin-bottom:16px; display:flex; align-items:center; gap:12px}
+  .k-eyebrow::before{content:""; width:36px; height:2px; background:var(--yellow-deep)}
+  .band .k-eyebrow{color:#AEB6DE}
+  .band .k-eyebrow::before{background:var(--yellow)}
+
+  h1{font-size:var(--fs-h1); line-height:1.06; font-weight:900; letter-spacing:-.045em; margin:0; text-wrap:balance; word-break:keep-all}
+  h2{font-size:var(--fs-h2); line-height:1.12; font-weight:900; letter-spacing:-.04em; margin:0 0 24px; text-wrap:balance; word-break:keep-all}
+  h3{font-size:var(--fs-h3); font-weight:800; letter-spacing:-.02em; margin:0 0 8px}
+  .hl{color:var(--navy)}
+  .band .hl{color:var(--yellow)}
+
+  /* hero */
+  .hero{padding:76px 0 84px}
+  .hero h1 .l2{display:block}
+  .hero .sub{font-size:var(--fs-lead); color:var(--dim); font-weight:500; margin:28px 0 36px; line-height:1.5}
+  .hero .sub b{color:var(--ink); font-weight:800}
+  .btns{display:flex; flex-wrap:wrap; gap:12px}
+  .btn{display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:var(--fs-body); padding:16px 28px; border-radius:var(--r-pill); text-decoration:none; cursor:pointer; border:2px solid var(--navy); transition:transform var(--dur-press) var(--ease-out), box-shadow var(--dur-hover) var(--ease-out)}
+  .btn.primary{background:var(--navy); color:var(--yellow)}
+  .btn.ghost{background:transparent; color:var(--navy)}
+  .btn:active{transform:translateY(0) scale(.98)}
+  /* 터치 기기는 탭 시 가짜 hover가 발생 → 포인터 있는 기기만 */
+  @media(hover:hover) and (pointer:fine){
+    .btn:hover{transform:translateY(-2px); box-shadow:var(--sh-hover)}
+  }
+  .btn:focus-visible{outline:3px solid var(--yellow-deep); outline-offset:3px}
+
+  /* hero two-col + animated mock
+     ↓ .hphone/.hscreen/.hbarr/.fcard 는 '실물 기기 형태' 묘사용 장식(aria-hidden).
+     디자인 토큰(radius 3종/shadow 3종) 대상이 아니다 — 예외 확정 (BOSS 2026-08-13) */
+  .hero .inner{display:grid; grid-template-columns:1fr; gap:44px; align-items:center}
+  @media(min-width:860px){.hero .inner{grid-template-columns:1.06fr .94fr}}
+  .hmock{position:relative; min-height:400px}
+  @media(max-width:859px){.hmock{min-height:340px}}
+  .hphone{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(6deg); width:196px; height:392px; border-radius:36px; background:linear-gradient(165deg,#0A174E,#070F35); border:8px solid #16245f; box-shadow:0 34px 70px rgba(10,23,78,.30); animation:hfloat 5.5s ease-in-out infinite}
+  .hscreen{position:absolute; inset:13px; border-radius:24px; background:#0c1850; overflow:hidden}
+  .hbarr{height:34px; background:rgba(245,208,66,.16); border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; padding:0 12px; gap:7px}
+  .hbarr i{width:8px; height:8px; border-radius:50%; background:var(--yellow)}
+  .hbarr span{font-size:9px; color:#AEB6DE; font-weight:800; letter-spacing:.12em}
+  .hfeed{display:flex; flex-direction:column; gap:11px; padding:12px; animation:feed 7s linear infinite}
+  .fcard{background:#12205e; border-radius:12px; padding:10px; flex:none}
+  .fcard .fimg{height:52px; border-radius:8px; background:linear-gradient(120deg,rgba(245,208,66,.95),rgba(245,208,66,.45)); margin-bottom:8px}
+  .fcard .fl{height:7px; border-radius:4px; background:rgba(255,255,255,.16); margin:5px 0}
+  .fcard .fl.s{width:55%}
+  .hbadge{position:absolute; z-index:3; font-weight:900; font-size:var(--fs-label); padding:8px 12px; border-radius:var(--r-pill); box-shadow:0 12px 26px rgba(10,23,78,.20); background:var(--yellow); color:var(--navy); animation:bfloat 5s ease-in-out infinite}
+  .hbadge.b1{top:6%; right:2%}
+  .hbadge.b2{bottom:12%; left:0; background:#fff; animation-duration:5.8s; animation-delay:.5s}
+  .hbadge.b3{bottom:42%; right:-3%; background:#fff; animation-duration:6.4s; animation-delay:1s}
+  @keyframes hfloat{0%,100%{transform:translate(-50%,-50%) rotate(6deg) translateY(0)}50%{transform:translate(-50%,-50%) rotate(6deg) translateY(-12px)}}
+  @keyframes bfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  @keyframes feed{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+  @media(prefers-reduced-motion:reduce){.hphone,.hbadge,.hfeed{animation:none}}
+
+  /* big statement */
+  .statement .q{color:var(--dim)}
+  .statement .after{font-size:var(--fs-lead); font-weight:800; margin-top:24px}
+  .turn-sub{margin-top:24px; font-size:var(--fs-base); font-weight:500; line-height:1.55; color:#AEB6DE}
+  .turn{font-size:var(--fs-h2); font-weight:900; letter-spacing:-.035em; margin-top:16px; line-height:1.14; word-break:keep-all}
+  /* TURN band: AI tools 3D tiles */
+  .turnband .inner{display:grid; grid-template-columns:1fr; gap:28px; align-items:start}
+  @media(min-width:600px){.turnband .inner{grid-template-columns:1.15fr .85fr; gap:24px}}
+  .ai3d{position:relative; min-height:250px; perspective:800px}
+  @media(max-width:859px){.ai3d{min-height:210px}}
+  .ai-tile{position:absolute; width:78px; height:78px; border-radius:var(--r-card); display:flex; align-items:center; justify-content:center; box-shadow:-10px 13px 24px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.28), inset 0 -7px 13px rgba(0,0,0,.16); transform:rotateX(12deg) rotateY(-16deg); animation:tilefloat 5s ease-in-out infinite}
+  .ai-tile svg{width:40px; height:40px}
+  .ai-tile .nm{position:absolute; left:50%; transform:translateX(-50%); bottom:-19px; font-size:var(--fs-micro); font-weight:800; color:#fff; white-space:nowrap; text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .ai-tile.claude{left:10%; top:4%; background:linear-gradient(150deg,#EDB187,#D97757); animation-delay:0s}
+  .ai-tile.gemini{left:40%; top:33%; width:90px; height:90px; z-index:2; background:linear-gradient(150deg,#5B8DEF,#8B5CF6); animation-delay:.5s}
+  .ai-tile.gemini svg{width:46px; height:46px}
+  .ai-tile.gpt{right:8%; top:60%; background:#0D0D0D; animation-delay:1s}
+  @keyframes tilefloat{0%,100%{transform:translateY(0) rotateX(12deg) rotateY(-16deg)}50%{transform:translateY(-11px) rotateX(12deg) rotateY(-9deg)}}
+  @media(prefers-reduced-motion:reduce){.ai-tile{animation:none}}
+
+  .lead-sub{color:var(--dim); font-size:var(--fs-body); line-height:1.6; margin:-8px 0 24px; max-width:620px}
+  .lead-sub b{color:var(--ink); font-weight:800}
+  .band .lead-sub{color:#AEB6DE}
+  .band .lead-sub b{color:#fff}
+
+  /* value grid */
+  .grid{display:grid; grid-template-columns:1fr; gap:2px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-card); overflow:hidden}
+  @media(min-width:620px){.grid.two{grid-template-columns:1fr 1fr}}
+  /* 밴드(네이비) 안에서도 셀은 paper 배경 → 글자색은 반드시 ink로 되돌린다 */
+  .cell{background:var(--paper); color:var(--ink); padding:32px 28px}
+  .cell .no{font-size:var(--fs-label); font-weight:900; letter-spacing:.14em; color:var(--navy); margin-bottom:16px}
+  .cell p{color:var(--dim); font-size:var(--fs-body); margin-top:4px}
+
+  /* navy band */
+  .band{background:var(--navy); color:var(--white)}
+  .band .eyebrow{color:#AEB6DE}
+  .band .eyebrow::before{background:var(--yellow)}
+  .band h2{color:#fff}
+  .band .dim{color:#AEB6DE}
+
+  /* ── PAIN: 실패 인용 말풍선 ───────────────────────────── */
+  .bubbles{display:flex; flex-direction:column; gap:14px; max-width:680px; margin:0 0 34px}
+  .bub{background:var(--white); border:1px solid var(--line); border-radius:var(--r-card); box-shadow:var(--sh-nav); padding:18px 22px; font-size:var(--fs-body); font-weight:600; line-height:1.55; max-width:92%}
+  .bub b{font-weight:800}
+  .bub:nth-child(even){align-self:flex-end; background:var(--paper-2); box-shadow:none}
+  .painsum{font-size:var(--fs-mid); font-weight:900; letter-spacing:-.03em; line-height:1.3; word-break:keep-all}
+  /* 라이트 배경에서 노란 글씨는 대비 미달(WCAG) → 글자는 navy, 노랑은 형광펜 배경으로 */
+  .painsum .hl,.gsum .hl,.sysafter .hl{color:var(--navy); background:linear-gradient(transparent 62%, rgba(245,208,66,.9) 62%)}
+  /* 네이비 밴드 위에선 형광펜을 끄고 노란 글자로 (navy 글자는 배경에 묻힌다) */
+  .band .painsum .hl,.band .gsum .hl,.band .sysafter .hl{color:var(--yellow); background:none}
+  .painsum .pre{display:block; font-size:var(--fs-body); font-weight:600; color:var(--dim); letter-spacing:-.01em; margin-bottom:12px}
+  .vrl .painadd{margin-top:26px; color:var(--dim); font-size:var(--fs-body); line-height:1.7; max-width:660px}
+  .painadd b{color:var(--ink); font-weight:800}
+
+  /* ── 전환 밴드 (AI 타일 + 하지만) ───────────────────────── */
+  .turnpoint .inner{display:grid; grid-template-columns:1fr; gap:34px; align-items:center}
+  @media(min-width:700px){.turnpoint .inner{grid-template-columns:1fr .8fr}}
+  .turnpoint .big{font-size:var(--fs-h1); font-weight:900; letter-spacing:-.045em; line-height:1; color:#fff; margin:0}
+  .turnpoint .dot{width:8px; height:8px; border-radius:var(--r-pill); background:var(--yellow); margin-bottom:22px}
+  .turnpoint p.after{color:#AEB6DE; font-size:var(--fs-lead); font-weight:600; margin-top:18px}
+
+  /* ── 격차 비교 ────────────────────────────────────────── */
+  .gaps{display:flex; flex-direction:column; gap:30px}
+  .gap{display:grid; grid-template-columns:1fr; gap:12px}
+  @media(min-width:660px){.gap{grid-template-columns:1fr 1fr; gap:16px}}
+  .gcard{border-radius:var(--r-card); padding:26px 24px}
+  .gcard.then{background:var(--paper-2); border:1px solid var(--line)}
+  .gcard.now{background:var(--navy); color:#fff}
+  .gcard .gl{font-size:var(--fs-label); font-weight:900; letter-spacing:.04em; padding:6px 12px; border-radius:var(--r-pill); display:inline-block; margin-bottom:14px}
+  .gcard.then .gl{background:rgba(10,23,78,.12); color:var(--navy)}
+  .gcard.now .gl{background:var(--yellow); color:var(--navy)}
+  .gcard p{font-size:var(--fs-body); font-weight:600; line-height:1.55}
+  .gcard.then p{color:var(--dim)}
+  .gcard.now p{color:#EAECF6}
+  .gnote{grid-column:1/-1; font-size:var(--fs-body); font-weight:800; color:var(--navy); background:var(--yellow); border-radius:var(--r-pill); padding:9px 18px; justify-self:start; margin-top:2px}
+  .vrl .gsum{margin-top:52px; font-size:var(--fs-mid); font-weight:900; letter-spacing:-.03em; line-height:1.3; word-break:keep-all}
+
+  /* ── 한 줄 약속 ───────────────────────────────────────── */
+  .promise .arw{color:var(--yellow); font-weight:900}
+  .promise .note{color:#AEB6DE; font-size:var(--fs-body); margin-top:8px}
+
+  /* ── 당일 진행 스펙표 ─────────────────────────────────── */
+  .spec{list-style:none; margin:46px 0 0; padding:0; border-top:1px solid var(--line)}
+  .spec li{display:grid; grid-template-columns:96px 1fr; gap:18px; padding:16px 0; border-bottom:1px solid var(--line); align-items:baseline}
+  .spec .lb{font-size:var(--fs-label); font-weight:900; letter-spacing:.1em; color:var(--navy)}
+  .spec .vl{font-size:var(--fs-body); font-weight:600}
+  .spec .vl b{font-weight:800}
+  @media(max-width:560px){.spec li{grid-template-columns:1fr; gap:6px}}
+
+  /* ── SYSTEM 01~06 ─────────────────────────────────────── */
+  .sys{border-left:2px solid var(--line); margin:8px 0 0 6px}
+  .band .sys{border-left-color:rgba(255,255,255,.22)}
+  .sysrow{position:relative; padding:0 0 16px 26px}
+  .sysrow:last-child{padding-bottom:0}
+  /* 8px 타임라인 도트 — 토큰 radius(8px)를 주면 사각이 되어 도트 의도가 사라진다. 예외 */
+  .sysrow::before{content:""; position:absolute; left:-5px; top:26px; width:8px; height:8px; border-radius:var(--r-pill); background:var(--yellow-deep)}
+  /* 밴드(네이비) 안의 흰 카드 → 글자색을 ink로 되돌린다 (안 하면 h3가 흰 글자로 사라짐) */
+  .syscard{background:var(--white); color:var(--ink); border:1px solid var(--line); border-radius:var(--r-card); box-shadow:var(--sh-nav); padding:18px 22px}
+  .syscard .no{font-size:var(--fs-micro); font-weight:900; letter-spacing:.1em; color:var(--navy); background:var(--yellow); padding:4px 10px; border-radius:var(--r-pill); display:inline-block; margin-bottom:10px}
+  .syscard h3{margin:0}
+  .syscard p{color:var(--dim); font-size:var(--fs-body); margin-top:5px}
+  .vrl .sysafter{margin-top:88px; font-size:var(--fs-lead); font-weight:800; line-height:1.45; word-break:keep-all}
+
+  /* ── 자동화 대상 칩 (라이트 배경) ─────────────────────── */
+  .chips{display:flex; flex-wrap:wrap; gap:10px; margin:4px 0 30px}
+  .chip{background:var(--navy); border:1.5px solid var(--navy); color:var(--yellow); padding:10px 16px; border-radius:var(--r-pill); font-size:var(--fs-sm); font-weight:800; white-space:nowrap}
+  .chip::before{content:""; display:inline-block; width:6px; height:6px; border-radius:var(--r-pill); background:var(--yellow); margin-right:8px; vertical-align:middle}
+  .chipnote{color:var(--dim); font-size:var(--fs-body); max-width:620px}
+  .chipnote b{color:var(--ink); font-weight:800}
+
+  /* faux scheduler graphic */
+  .term{background:#070F35; border:1px solid rgba(255,255,255,.12); border-radius:var(--r-card); overflow:hidden; box-shadow:0 30px 60px rgba(0,0,0,.35); max-width:520px}
+  .term .bar{display:flex; gap:7px; padding:14px 16px; border-bottom:1px solid rgba(255,255,255,.1)}
+  .term .bar i{width:11px; height:11px; border-radius:50%; background:rgba(255,255,255,.22)}
+  .term .bar i:first-child{background:#ff5f57}.term .bar i:nth-child(2){background:#febc2e}.term .bar i:nth-child(3){background:#28c840}
+  .term .body{padding:20px 20px 24px; font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:var(--fs-sm); line-height:1.9; min-height:220px}
+  .term .row{display:flex; gap:10px; transition:opacity .4s ease, transform .4s ease}
+  .term .cmd{color:#fff}
+  .term .cmd .p{color:var(--yellow)}
+  .term .ok{color:#5be59a}
+  .term .ok .c{color:var(--yellow); font-weight:800}
+  .term .wait{color:#AEB6DE}
+  .term .cursor{color:var(--yellow); animation:blink 1s step-end infinite}
+  @keyframes blink{50%{opacity:0}}
+
+  /* stat band */
+  .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:32px 20px; margin-top:44px}
+  @media(min-width:680px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat .n{font-size:var(--fs-stat); font-weight:900; letter-spacing:-.05em; line-height:1; color:var(--yellow); font-variant-numeric:tabular-nums}
+  .stat .u{font-size:var(--fs-sm); font-weight:800; color:#AEB6DE; margin-top:12px}
+
+  /* steps */
+  .steps{display:flex; flex-direction:column; border-top:1px solid var(--line)}
+  .step{display:grid; grid-template-columns:88px 1fr; gap:20px; padding:30px 0; border-bottom:1px solid var(--line)}
+  .step .no{font-size:var(--fs-label); font-weight:900; letter-spacing:.1em; color:var(--navy)}
+  .step p{color:var(--dim); font-size:var(--fs-body); margin-top:6px}
+  @media(max-width:560px){.step{grid-template-columns:1fr; gap:8px}}
+
+  /* reco */
+  .reco{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:620px){.reco{grid-template-columns:1.4fr 1fr}}
+  .panel{border-radius:var(--r-card); padding:32px 28px}
+  .panel.rec{background:var(--navy); color:#fff}
+  .panel.no{background:var(--paper-2); border:1px solid var(--line)}
+  .panel .plabel{font-size:var(--fs-label); font-weight:900; letter-spacing:.04em; padding:6px 12px; border-radius:var(--r-pill); display:inline-block; margin-bottom:20px}
+  .panel.rec .plabel{background:var(--yellow); color:var(--navy)}
+  .panel.no .plabel{background:var(--navy); color:#fff}
+  .ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:14px}
+  .ul li{position:relative; padding-left:26px; font-weight:500}
+  /* 10px 마이크로 마커 — 토큰 radius(8px)를 주면 원형이 되어 사각 마커 의도가 사라진다. 예외 */
+  .ul li::before{content:""; position:absolute; left:0; top:9px; width:10px; height:10px; border-radius:2px; background:var(--yellow)}
+  .panel.no .ul li::before{background:var(--navy)}
+  .panel.rec .ul li{color:#EAECF6}
+  .ul li b{font-weight:800; color:#fff}
+  .panel.no .ul li b{font-weight:800; color:var(--ink)}
+  .ul li .sm{display:inline-block; margin-top:4px; font-size:var(--fs-sm); font-weight:500; color:var(--dim); line-height:1.5}
+
+  /* instructor */
+  .bio h2{margin-bottom:20px}
+  .bio .lead{font-size:var(--fs-mid); font-weight:900; letter-spacing:-.03em; line-height:1.25; margin-bottom:22px; text-wrap:balance}
+  /* 라이트 배경 위 yellow-deep 글자는 1.64:1 로 WCAG 미달 → 형광펜 방식으로 통일 */
+  .bio .lead .hl{color:var(--navy); background:linear-gradient(transparent 62%, rgba(245,208,66,.9) 62%)}
+  .bio p{color:var(--dim); font-size:var(--fs-body); margin-bottom:12px; max-width:640px}
+  /* 좌측 컬러 바(side-tab)는 제거 — 강조는 .hl 형광펜이 담당한다 */
+  .vrl .bio .goal{margin-top:34px; color:var(--ink); font-size:var(--fs-lead); font-weight:800; line-height:1.45; word-break:keep-all}
+
+  /* faq */
+  .faq{border-top:1px solid var(--line); padding-top:8px}
+  .qa{border-bottom:1px solid var(--line)}
+  .qa button{width:100%; text-align:left; background:none; border:0; padding:24px 0; font-size:var(--fs-h3); font-weight:800; color:var(--ink); cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px; letter-spacing:-.02em}
+  .qa .plus{flex:none; width:26px; height:26px; position:relative; transition:transform .3s ease}
+  .qa .plus::before,.qa .plus::after{content:""; position:absolute; background:var(--yellow-deep); left:50%; top:50%}
+  .qa .plus::before{width:15px; height:2.5px; transform:translate(-50%,-50%)}
+  .qa .plus::after{width:2.5px; height:15px; transform:translate(-50%,-50%)}
+  .qa.open .plus{transform:rotate(135deg)}
+  /* max-height 대신 grid 행 애니메이션: 420px 상한이 없어 긴 답변도 안 잘림 */
+  .qa .ans{display:grid; grid-template-rows:0fr; transition:grid-template-rows .34s var(--ease-out)}
+  /* grid item 기본 min-height:auto 가 0fr 압축을 막는다 → 0 으로 풀어야 접힘 */
+  .qa .ansin{overflow:hidden; min-height:0}
+  .qa.open .ans{grid-template-rows:1fr}
+  .qa .ans p{color:var(--dim); font-size:var(--fs-body); padding:4px 40px 26px 0; line-height:1.65}
+
+  /* final */
+  .final h2{color:#fff}
+  .final .note{color:#AEB6DE; margin:24px 0 32px; font-size:var(--fs-body); max-width:560px}
+  .final .contact{color:#AEB6DE; font-size:var(--fs-sm); margin-top:22px}
+  .foot{background:var(--navy); color:#7982AE; font-size:var(--fs-sm); padding:34px 24px; text-align:center; line-height:1.8; border-top:1px solid var(--navy-soft)}
+  .foot .wmf{height:19px; width:auto; display:block; margin:0 auto 12px}
+
+  /* reveal (progressive: only hides when JS marks .js) */
+  .vrl.js .rv{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease}
+  .vrl.js .rv.in{opacity:1; transform:none}
+  .vrl.js .term .row{opacity:0; transform:translateY(6px)}
+  .vrl.js .term .row.show{opacity:1; transform:none}
+  @media (prefers-reduced-motion:reduce){.vrl.js .rv{opacity:1; transform:none; transition:none}.btn{transition:none}.qa .ans{transition:none}.qa .plus{transition:none}.term .row{transition:none}.term .cursor{animation:none}}
+</style>
+<link rel="canonical" href="https://114316ddd.github.io/lazyboss-site/class/">
+<meta name="theme-color" content="#0A174E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="lazyboss">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:url" content="https://114316ddd.github.io/lazyboss-site/class/">
+<meta property="og:title" content="천안·아산 1인 사업자 원데이 클래스 — lazyboss">
+<meta property="og:description" content="반복 업무를 알아서 돌아가는 시스템으로. 8월 27일(목)·29일(토), 회차당 5명.">
+<meta property="og:image" content="https://114316ddd.github.io/lazyboss-site/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="천안·아산 1인 사업자 원데이 클래스 — lazyboss">
+<meta name="twitter:description" content="반복 업무를 알아서 돌아가는 시스템으로. 8월 27일(목)·29일(토), 회차당 5명.">
+<meta name="twitter:image" content="https://114316ddd.github.io/lazyboss-site/assets/og.png">
+</head>
+<body>
+
+<div class="vrl">
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="inner">
+      <a class="brand" href="#top">
+        <img class="wm" src="../assets/wordmark-navy.png" alt="lazyboss" width="400" height="87">
+        <em>AI를 직원처럼, 사장님은 보스답게</em>
+      </a>
+      <nav class="navlinks">
+        <a href="#get">가져가는 것</a>
+        <a href="#how">진행·일정</a>
+        <a href="#faq">FAQ</a>
+        <a class="apply" href="https://forms.gle/c5WQfEms36Qq94ME6">신청하기</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="inner">
+      <div class="hcol">
+        <div class="eyebrow rv">천안 / 아산 · 1인 사업자 원데이 클래스</div>
+        <h1 class="rv">남들은 AI로<br>하루 10분,<span class="l2 hl">사장님은 아직<br>밤을 새웁니다.</span></h1>
+        <p class="sub rv">시간이 부족한 천안·아산 1인 사업자를 위한<br><b>업무·콘텐츠 자동화 원데이 클래스.</b><br>코딩 몰라도 됩니다. 진행하는 사람도 비개발자입니다.</p>
+        <div class="btns rv">
+          <a class="btn primary" href="https://forms.gle/c5WQfEms36Qq94ME6">신청하기 →</a>
+          <a class="btn ghost" href="#get">클래스 살펴보기</a>
+        </div>
+      </div>
+      <div class="hmock rv" aria-hidden="true">
+        <div class="hbadge b1">문서 정리 ✓</div>
+        <div class="hbadge b2">반복 업무 ✓</div>
+        <div class="hbadge b3">콘텐츠 ✓</div>
+        <div class="hphone">
+          <div class="hscreen">
+            <div class="hbarr"><i></i><span>AUTO POSTING</span></div>
+            <div class="hfeed">
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- PAIN — 실패 인용 -->
+  <section class="sec tight">
+    <div class="inner">
+      <div class="k-eyebrow rv">SOUND FAMILIAR</div>
+      <h2 class="rv">혹시 AI 강의,<br>몇 개째 듣고 계신가요?</h2>
+      <div class="bubbles" data-stagger>
+        <div class="bub rv">클로드 코드 <b>설치까지는 했는데</b>, 그다음을 모르겠어요.</div>
+        <div class="bub rv">강의 볼 땐 따라 했는데, <b>혼자선 아무것도 못 만들겠어요.</b></div>
+        <div class="bub rv">자동화라더니 <b>결국 매번 제가 실행</b>하고 있어요.</div>
+        <div class="bub rv">외주 견적 받아보고 <b>그냥 접었습니다.</b></div>
+      </div>
+      <p class="painsum rv"><span class="pre">사장님이 AI를 못해서가 아닙니다.</span><span class="hl">무엇을</span>, <span class="hl">어떻게</span> 시킬지를<br>아무도 안 알려줬을 뿐입니다.</p>
+      <p class="painadd rv">‘AI로 자동화하는 법’을 알려주는 강의는 넘칩니다. 정작 <b>내 업무에 붙이는 방법</b>은 잘 없습니다.<br>배울 시간도 없고, 지방이라 배울 데도 마땅치 않고요. 그렇게 미루는 사이 시간만 갑니다.</p>
+    </div>
+  </section>
+
+  <!-- 전환 -->
+  <section class="sec band turnpoint">
+    <div class="inner">
+      <div>
+        <div class="dot rv"></div>
+        <p class="big rv">하지만</p>
+        <p class="after rv">도구는 이미 다 나와 있습니다.<br>지금부터는 달라질 수 있습니다.</p>
+      </div>
+      <div class="ai3d rv" aria-hidden="true">
+        <div class="ai-tile claude">
+          <svg viewBox="0 0 100 100"><g fill="#3A1E10"><rect x="45" y="12" width="10" height="76" rx="5"/><rect x="45" y="12" width="10" height="76" rx="5" transform="rotate(45 50 50)"/><rect x="45" y="12" width="10" height="76" rx="5" transform="rotate(90 50 50)"/><rect x="45" y="12" width="10" height="76" rx="5" transform="rotate(135 50 50)"/></g></svg>
+          <span class="nm">Claude</span>
+        </div>
+        <div class="ai-tile gemini">
+          <svg viewBox="0 0 100 100"><path fill="#fff" d="M50 6 C55 38 62 45 94 50 C62 55 55 62 50 94 C45 62 38 55 6 50 C38 45 45 38 50 6Z"/></svg>
+          <span class="nm">Gemini</span>
+        </div>
+        <div class="ai-tile gpt">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.093zM13.2599 22.43a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6456zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997z"/></svg>
+          <span class="nm">ChatGPT</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 격차 -->
+  <section class="sec">
+    <div class="inner">
+      <div class="k-eyebrow rv">WHAT CHANGED</div>
+      <h2 class="rv">손으로 다 하는 사장님과,<br>시켜놓는 사장님</h2>
+      <div class="gaps">
+        <div class="gap rv">
+          <div class="gcard then"><span class="gl">그대로 두면</span><p>1년 뒤에도 정리·발행·확인을 여전히 직접 하고 있습니다.</p></div>
+          <div class="gcard now"><span class="gl">한 번 만들어두면</span><p>세팅해둔 자동화가 밤사이 돌아가고, 아침엔 결과만 확인합니다.</p></div>
+          <div class="gnote">차이는 매일 조금씩 벌어집니다.</div>
+        </div>
+        <div class="gap rv">
+          <div class="gcard then"><span class="gl">예전 기준</span><p>필요한 게 생기면 개발자한테 맡기거나, 외주 견적부터 받아봅니다.</p></div>
+          <div class="gcard now"><span class="gl">지금 기준</span><p>직접 만들어 쓰는 사람 중 상당수가 비개발자입니다. 고치는 것도 그 자리에서.</p></div>
+          <div class="gnote">개발자만의 영역도, 큰돈 드는 일도 아니게 됐습니다.</div>
+        </div>
+      </div>
+      <p class="gsum rv">남들이 AI를 <span class="hl">쓰기만</span> 할 때,<br>사장님은 <span class="hl">만드는 쪽</span>이 됩니다.</p>
+    </div>
+  </section>
+
+  <!-- 한 줄 약속 -->
+  <section class="sec band promise">
+    <div class="inner">
+      <div class="k-eyebrow rv">IN ONE LINE</div>
+      <h2 class="rv">이 클래스가 하는 일은<br>하나입니다.</h2>
+      <p class="turn rv">사장님의 반복 업무를 <span class="arw">→</span><br><span class="hl">알아서 돌아가는 시스템</span>으로.</p>
+      <p class="note rv">거창한 시스템이 아닙니다. 매번 손 가던 일 하나를 대신 돌게 만드는 것부터입니다.</p>
+    </div>
+  </section>
+
+  <!-- 무엇을 — 자동화 대상 칩 -->
+  <section class="sec">
+    <div class="inner">
+      <div class="k-eyebrow rv">WHAT CAN BE AUTOMATED</div>
+      <h2 class="rv">사장님의 어떤 일이<br>자동화될까요?</h2>
+      <p class="lead-sub rv">업종마다 다릅니다. 아래는 1인 사업자에게 흔한 것들입니다.</p>
+      <div class="chips rv">
+        <span class="chip">아침 업무 브리핑</span>
+        <span class="chip">주문·발주 정리</span>
+        <span class="chip">고객 문의 분류</span>
+        <span class="chip">예약·일정 정리</span>
+        <span class="chip">견적서·제안서 초안</span>
+        <span class="chip">상담 기록 정리</span>
+        <span class="chip">매출·정산 정리</span>
+        <span class="chip">재고 확인</span>
+        <span class="chip">카드뉴스 만들기</span>
+        <span class="chip">숏폼·릴스 대본</span>
+        <span class="chip">SNS 발행 캘린더</span>
+        <span class="chip">블로그 글 초안</span>
+        <span class="chip">리뷰 모니터링</span>
+        <span class="chip">경쟁사 확인</span>
+        <span class="chip">단골 안내 문자</span>
+        <span class="chip">회의·통화 내용 요약</span>
+        <span class="chip">이메일 초안</span>
+        <span class="chip">주간 정리 보고</span>
+        <span class="chip">반복 입력·복붙</span>
+        <span class="chip">자료 찾아 정리</span>
+      </div>
+      <p class="chipnote rv">사장님에게 <b>필요한 것들을 만들 수 있게</b> 해드립니다.</p>
+    </div>
+  </section>
+
+  <!-- 어떻게 — SYSTEM 01~06 -->
+  <section class="sec band">
+    <div class="inner">
+      <div class="k-eyebrow rv">THE REAL SKILL</div>
+      <h2 class="rv">중요한 건 AI 도구가 아니라,<br>내 일을 시스템으로 바꾸는 순서입니다</h2>
+      <p class="lead-sub rv">도구는 계속 바뀝니다. 바뀌지 않는 건 아래 순서입니다.<br>한 번 겪어보면, 다음 업무는 혼자서도 이 순서대로 하시게 됩니다.</p>
+      <div class="sys" data-stagger>
+        <div class="sysrow rv"><div class="syscard"><span class="no">SYSTEM 01</span><h3>뭘 반복하고 있는지 찾는다</h3><p>매주 몇 번씩 똑같이 하는 일부터 꺼냅니다.</p></div></div>
+        <div class="sysrow rv"><div class="syscard"><span class="no">SYSTEM 02</span><h3>그 일의 순서를 말로 적는다</h3><p>내가 어떤 순서로 하는지 적어야 시킬 수 있습니다.</p></div></div>
+        <div class="sysrow rv"><div class="syscard"><span class="no">SYSTEM 03</span><h3>어디를 넘길지 정한다</h3><p>전부가 아니라, 넘겨도 되는 구간만 자동으로 돌립니다.</p></div></div>
+        <div class="sysrow rv"><div class="syscard"><span class="no">SYSTEM 04</span><h3>AI에게 시켜서 만든다</h3><p>코드를 쓰는 게 아니라, 말로 시켜서 만들게 합니다.</p></div></div>
+        <div class="sysrow rv"><div class="syscard"><span class="no">SYSTEM 05</span><h3>매번 쓰기 편한 형태로 만든다</h3><p>한 번 쓰고 마는 게 아니라, 버튼처럼 다시 쓸 수 있게.</p></div></div>
+        <div class="sysrow rv"><div class="syscard"><span class="no">SYSTEM 06</span><h3>쓰면서 고친다</h3><p>처음부터 완벽하지 않습니다. 쓰다 안 맞는 곳만 고칩니다.</p></div></div>
+      </div>
+      <p class="sysafter rv">기능을 외우는 자리가 아니라,<br><span class="hl">이 순서를 한 번 직접 겪어보는 자리</span>입니다.</p>
+    </div>
+  </section>
+
+  <!-- 결과 — 터미널 -->
+  <section class="sec">
+    <div class="inner">
+      <div class="k-eyebrow rv">HOW IT FEELS</div>
+      <h2 class="rv">하루 10분.<br>나머지는 자동으로.</h2>
+      <p class="lead-sub rv" style="margin-bottom:38px">한 번 세팅해두면, 반복 업무도 콘텐츠도 알아서 처리됩니다. 사장님은 아침에 확인만.</p>
+      <div class="term rv" id="term">
+        <div class="bar"><i></i><i></i><i></i></div>
+        <div class="body" id="termbody">
+          <div class="row cmd"><span class="p">›</span> 오늘 할 일 정리하고 콘텐츠도 만들어줘</div>
+          <div class="row ok"><span class="c">✓</span> 주문 내역 정리 · 문서 초안 완료</div>
+          <div class="row ok"><span class="c">✓</span> 카드뉴스 3장 · 숏폼 대본 1편 생성</div>
+          <div class="row ok"><span class="c">✓</span> 내일 오전 9시 예약 발행</div>
+          <div class="row wait"><span class="cursor">▍</span> 사장님 확인 대기…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 가져가는 것 -->
+  <section class="sec band" id="get">
+    <div class="inner">
+      <div class="k-eyebrow rv">WHAT YOU TAKE HOME</div>
+      <h2 class="rv">이 하루가 끝나면<br>가져가는 것</h2>
+      <p class="lead-sub rv">강의 노트가 아니라, 돌아가서 <b>그대로 쓰는 것</b>들입니다.</p>
+      <div class="grid two rv">
+        <div class="cell"><div class="no">TAKE 01</div><h3>내 업무 자동화 1개</h3><p>남의 예제가 아니라 사장님 업무로 만듭니다. 그날 만든 게 그대로 남습니다.</p></div>
+        <div class="cell"><div class="no">TAKE 02</div><h3>세팅 끝난 노트북</h3><p>클로드 코드 설치·연결까지 끝난 상태로 돌아갑니다. 집에서 다시 헤맬 일 없이.</p></div>
+        <div class="cell"><div class="no">TAKE 03</div><h3>혼자 이어갈 순서</h3><p>다음 업무는 혼자 붙일 수 있게, 그날 쓴 순서를 정리해 드립니다.</p></div>
+        <div class="cell"><div class="no">TAKE 04</div><h3>내 상황에 맞는 답</h3><p>업종도 업무도 제각각입니다. 막히는 지점을 그 자리에서 물어보고 답 듣고 갑니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 당일 진행 + 한 장 요약 -->
+  <section class="sec" id="how">
+    <div class="inner">
+      <div class="k-eyebrow rv">HOW IT GOES</div>
+      <h2 class="rv">당일은<br>이렇게 진행합니다</h2>
+      <p class="lead-sub rv">위 <b>SYSTEM 01~06</b>을, 하루 안에 한 바퀴 같이 돌려보는 순서입니다.</p>
+      <div class="steps rv">
+        <div class="step"><div class="no">STEP 01</div><div><h3>내 업무 고르기</h3><p>무엇을 자동화할지부터 같이 정합니다. 매주 반복되는 일 하나를 꺼냅니다.</p></div></div>
+        <div class="step"><div class="no">STEP 02</div><div><h3>함께 실습</h3><p>노트북을 열고 직접 만듭니다. 막히는 곳은 옆에서 바로 봐드립니다.</p></div></div>
+        <div class="step"><div class="no">STEP 03</div><div><h3>Q&amp;A · 정리</h3><p>내 업무에 맞는 질문을 그 자리에서. 돌아가서 혼자 이어갈 수 있게 정리해 드립니다.</p></div></div>
+      </div>
+      <ul class="spec rv">
+        <li><span class="lb">일정</span><span class="vl"><b>8월 27일(목) 저녁 7시</b> · <b>8월 29일(토) 오전 9시</b> 중 택1 (같은 수업)</span></li>
+        <li><span class="lb">정원</span><span class="vl">회차당 <b>5명</b> — 소수정예로 제대로 가르쳐드리고 싶습니다</span></li>
+        <li><span class="lb">참가비</span><span class="vl"><b>10만원</b></span></li>
+        <li><span class="lb">준비물</span><span class="vl"><b>노트북</b> · <b>클로드 유료결제</b> — 두 가지 모두 있어야 실습이 가능합니다</span></li>
+        <li><span class="lb">장소</span><span class="vl">천안 시내 — 확정 후 개별 안내</span></li>
+      </ul>
+    </div>
+  </section>
+
+
+  <!-- RECO -->
+  <section class="sec">
+    <div class="inner">
+      <div class="k-eyebrow rv">IS THIS FOR YOU</div>
+      <h2 class="rv">이런 분께</h2>
+      <div class="reco rv">
+        <div class="panel rec">
+          <span class="plabel">추천합니다</span>
+          <ul class="ul">
+            <li>반복 업무가 많은 <b>자영업자·1인 대표</b></li>
+            <li>혼자 여러 일을 다 처리하는 <b>프리랜서</b></li>
+            <li><b>콘텐츠·마케팅</b>을 자동화하고 싶은 분</li>
+            <li>외주 견적이 부담스러워 미뤄둔 게 있는 분</li>
+            <li>SNS 하고 싶은데 시간이 없거나 귀찮아서 방치 중인 사장님</li>
+          </ul>
+        </div>
+        <div class="panel no">
+          <span class="plabel">비추합니다</span>
+          <ul class="ul">
+            <li>이미 AI를 충분히 잘 써서, 따로 배울 게 없는 분</li>
+            <li>버튼 한 번 ‘딸깍’으로 끝나길 바라는 분<br><span class="sm">이 클래스는 그 ‘딸깍’을 만드는 과정을 배우는 곳입니다.</span></li>
+            <li>배우는 것까지만 생각하고, 실제로 써볼 계획은 아직 없는 분</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIO -->
+  <section class="sec tight bio">
+    <div class="inner">
+      <div class="k-eyebrow rv">HOW WE TEACH</div>
+      <p class="lead rv">진행하는 사람도 개발자가 아닙니다.<br><span class="hl">코딩 전공도 아니고요.</span></p>
+      <p class="rv">툴을 직접 붙잡고 익혔고, 지금은 자동화로 매일 콘텐츠를 만들고 있습니다. 그 과정에서 막혔던 지점을 그대로 알려드립니다. 어려운 말은 빼고, 사장님 눈높이로만.</p>
+      <p class="goal rv">이 클래스의 목표는 하나입니다.<br><span class="hl">사장님이 스스로 내 업무에 AI를 적용하는 것.</span></p>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="sec" id="faq">
+    <div class="inner">
+      <div class="k-eyebrow rv">FAQ</div>
+      <h2 class="rv">자주 묻는 것</h2>
+      <div class="faq rv">
+        <div class="qa"><button type="button">컴퓨터 잘 못 다뤄도 되나요?<span class="plus"></span></button><div class="ans"><div class="ansin"><p>컴퓨터로 워드, 엑셀, 인터넷 검색 같은 작업만 할 줄 아셔도 충분히 가능합니다.</p></div></div></div>
+        <div class="qa"><button type="button">노트북 꼭 필요한가요?<span class="plus"></span></button><div class="ans"><div class="ansin"><p>네, 필수입니다. 직접 따라 해보는 시간이 있어서, 노트북이 있어야 손에 남는 게 생깁니다.</p></div></div></div>
+        <div class="qa"><button type="button">환불 규정이 어떻게 되나요?<span class="plus"></span></button><div class="ans"><div class="ansin"><p>클래스 시작일 기준 3일 전까지 연락 주시면 전액 환불해 드립니다.<br>그 이후에는 자리가 확정되고 준비가 들어가서 환불이 어렵습니다. 다만 클래스가 취소되거나 일정이 변경되는 경우에는 전액 환불해 드립니다.</p></div></div></div>
+        <div class="qa"><button type="button">어떤 AI를 다루나요?<span class="plus"></span></button><div class="ans"><div class="ansin"><p>이번 클래스는 클로드 코드(Claude Code)를 위주로 다룹니다. 처음 보셔도 괜찮게, 설치부터 화면 보면서 함께 진행합니다.</p></div></div></div>
+        <div class="qa"><button type="button">참가비 외에 따로 드는 비용이 있나요?<span class="plus"></span></button><div class="ans"><div class="ansin"><p>클로드 코드는 별도의 유료 구독이 필요합니다. 요금제와 신청 방법은 클래스에서 함께 안내해 드리며, 참가비에는 포함되어 있지 않습니다.</p></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="sec band final">
+    <div class="inner">
+      <div class="k-eyebrow rv">JOIN THE CLASS</div>
+      <h2 class="rv">천안·아산, 8월 27·29일.<br>회차당 <span class="hl">단 5명</span>뿐입니다.</h2>
+      <p class="note rv"><b style="color:#fff">8월 27일(목) 저녁 7시</b> · <b style="color:#fff">8월 29일(토) 오전 9시</b> 중 택1<br>참가비 <span class="hl">10만원</span> · 회차당 정원 5명 · 노트북 필수<br><span style="opacity:.8">신청폼 작성 → 계좌 입금 확인 → 확정 문자</span></p>
+      <div class="btns rv"><a class="btn primary" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">신청하기 →</a></div>
+    </div>
+  </section>
+
+  <p class="foot">
+    <img class="wmf" src="../assets/wordmark-yellow.png" alt="lazyboss" width="400" height="87">
+    AI를 직원처럼, 사장님은 보스답게<br>천안·아산 1인 사업자 업무·콘텐츠 자동화 원데이 클래스
+  </p>
+
+</div>
+
+<script>
+(function(){
+  var root=document.querySelector('.vrl'); if(root) root.classList.add('js');
+  var rvs=[].slice.call(document.querySelectorAll('.rv'));
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.14});
+  rvs.forEach(function(el){io.observe(el);});
+
+  // 그룹 안 요소는 순차 등장 (data-stagger)
+  [].slice.call(document.querySelectorAll('[data-stagger]')).forEach(function(g){
+    [].slice.call(g.querySelectorAll('.rv')).forEach(function(el,i){
+      el.style.transitionDelay=(i*90)+'ms';
+    });
+  });
+
+  // count up
+  function countUp(el){
+    var t=parseInt(el.getAttribute('data-count'),10), s=null, dur=1100;
+    el.textContent='0';
+    function step(ts){ if(!s)s=ts; var p=Math.min((ts-s)/dur,1); el.textContent=Math.round(p*t); if(p<1)requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  var counts=[].slice.call(document.querySelectorAll('[data-count]'));
+  var io2=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ countUp(e.target); io2.unobserve(e.target);} }); },{threshold:.5});
+  counts.forEach(function(el){io2.observe(el);});
+
+  // terminal rows reveal in sequence
+  var term=document.getElementById('term');
+  if(term){
+    var rows=[].slice.call(term.querySelectorAll('.row'));
+    var done=false;
+    var io3=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(e.isIntersecting && !done){ done=true;
+          rows.forEach(function(r,i){ setTimeout(function(){ r.classList.add('show'); }, 380*i+200); });
+        }
+      });
+    },{threshold:.4});
+    io3.observe(term);
+  }
+
+  // faq accordion
+  [].slice.call(document.querySelectorAll('.qa button')).forEach(function(b){
+    var qa=b.parentElement;
+    b.setAttribute('aria-expanded','false');
+    b.addEventListener('click',function(){
+      var open=qa.classList.toggle('open');
+      b.setAttribute('aria-expanded', open?'true':'false');
+    });
+  });
+})();
+</script>
+</body>
+</html>

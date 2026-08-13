@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lazyboss — AI를 직원처럼, 사장님은 보스답게</title>
+<meta name="description" content="게으른 보스(lazyboss). 1인 사업자가 AI로 반복 업무와 콘텐츠를 자동화하는 법. 코딩 없이, 비개발자 눈높이로.">
+<link rel="icon" href="assets/favicon-32.png" sizes="32x32">
+<link rel="icon" href="assets/favicon-512.png" sizes="512x512">
+<link rel="apple-touch-icon" href="assets/favicon-180.png">
+<style>
+  :root{
+    --navy:#0A174E; --navy-soft:#1A2867; --yellow:#F5D042; --yellow-deep:#E0B72A;
+    --paper:#ECEEE7; --paper-2:#E4E7DE; --ink:#0A174E; --dim:#5A6180;
+    --line:rgba(10,23,78,.14); --white:#FFFFFF;
+    /* motion tokens */
+    --ease-out:cubic-bezier(.23,1,.32,1);
+    --ease-in-out:cubic-bezier(.77,0,.175,1);
+    --dur-press:120ms; --dur-hover:180ms; --dur-rv:520ms;
+    /* type scale — 12단계 고정. 새 값 추가 금지(레퍼런스 vrl.co.kr 17종 대비 절제) */
+    --fs-h1:clamp(36px,6.6vw,64px); --fs-h2:clamp(30px,6vw,52px); --fs-mid:clamp(22px,4vw,32px);
+    --fs-stat:clamp(38px,7vw,62px); --fs-lead:clamp(18px,2.6vw,22px);
+    --fs-h3:20px; --fs-brand:19px; --fs-base:17px; --fs-body:16px;
+    --fs-sm:14px; --fs-label:12px; --fs-micro:11.5px;
+    /* radius 3종 · shadow 3종 (히어로 폰 목업은 실물 형태 묘사라 예외) */
+    --r-pill:999px; --r-card:20px; --r-sm:8px;
+    --sh-nav:0 8px 24px rgba(10,23,78,.08);
+    --sh-hover:0 10px 22px rgba(10,23,78,.14);
+    --sh-card:0 18px 38px rgba(10,23,78,.12);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0; padding:0}
+  .vrl{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Malgun Gothic",sans-serif;
+    background:var(--paper); color:var(--ink);
+    -webkit-font-smoothing:antialiased; line-height:1.6; letter-spacing:-.01em; font-size:var(--fs-base);
+  }
+  /* No overflow guard on any sticky ancestor (html/body/.vrl) — a non-visible
+     overflow ancestor kills position:sticky on the nav. Clip per-section instead. */
+  .sec,.hero,.foot{overflow-x:clip}
+  .vrl p{margin:0}
+  /* 한글은 어절 단위로만 줄바꿈 (음절 쪼개짐 방지) */
+  .vrl p,.vrl li,.vrl h3,.vrl .nm,.vrl .hd{word-break:keep-all}
+  .inner{max-width:960px; margin:0 auto; padding:0 24px}
+
+  /* top bar */
+  .nav{position:-webkit-sticky; position:sticky; top:0; z-index:40; background:var(--paper); background:color-mix(in srgb,var(--paper) 92%,transparent); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid var(--line); transition:box-shadow var(--dur-hover) var(--ease-out)}
+  .nav.stuck{box-shadow:var(--sh-nav)}
+  .nav .inner{display:flex; align-items:center; justify-content:space-between; min-height:70px; gap:16px; padding:12px 24px}
+  .brand{font-weight:900; font-size:var(--fs-brand); letter-spacing:-.03em; display:flex; flex-direction:column; line-height:1.15; color:var(--ink); text-decoration:none}
+  .brand .wm{height:21px; width:auto; display:block; align-self:flex-start}
+  .brand em{font-style:normal; font-size:var(--fs-micro); font-weight:500; letter-spacing:-.01em; color:var(--dim); margin-top:5px}
+  @media(max-width:420px){.brand em{display:none}}
+  .navlinks{display:flex; align-items:center; gap:24px}
+  .navlinks a{color:var(--dim); text-decoration:none; font-size:var(--fs-sm); font-weight:500; transition:color var(--dur-hover) ease}
+  .navlinks a:not(.apply){position:relative}
+  .navlinks a:not(.apply)::after{content:""; position:absolute; left:0; right:0; bottom:-6px; height:2px; background:var(--yellow-deep); transform:scaleX(0); transform-origin:left; transition:transform var(--dur-hover) var(--ease-out)}
+  .navlinks .apply{background:var(--navy); color:var(--yellow); padding:12px 18px; border-radius:var(--r-pill); font-weight:800; font-size:var(--fs-sm); transition:transform var(--dur-press) var(--ease-out)}
+  .navlinks .apply:active{transform:scale(.97)}
+  @media(max-width:640px){.navlinks a:not(.apply){display:none}}
+
+  /* section rhythm */
+  .sec{padding:96px 0}
+  .sec.tight{padding:64px 0}
+  .eyebrow{display:flex; align-items:center; gap:16px; font-size:var(--fs-label); font-weight:800; letter-spacing:.2em; color:var(--dim); text-transform:uppercase; margin-bottom:26px}
+  .eyebrow::before{content:""; width:46px; height:2px; background:var(--yellow-deep)}
+  .k-eyebrow{font-size:var(--fs-label); font-weight:800; letter-spacing:.04em; color:var(--dim); margin-bottom:16px; display:flex; align-items:center; gap:12px}
+  .k-eyebrow::before{content:""; width:36px; height:2px; background:var(--yellow-deep)}
+  .band .k-eyebrow{color:#AEB6DE}
+  .band .k-eyebrow::before{background:var(--yellow)}
+
+  h1{font-size:var(--fs-h1); line-height:1.06; font-weight:900; letter-spacing:-.045em; margin:0; text-wrap:balance; word-break:keep-all}
+  h2{font-size:var(--fs-h2); line-height:1.12; font-weight:900; letter-spacing:-.04em; margin:0 0 24px; text-wrap:balance; word-break:keep-all}
+  h3{font-size:var(--fs-h3); font-weight:800; letter-spacing:-.02em; margin:0 0 8px}
+  .hl{color:var(--navy)}
+  .band .hl{color:var(--yellow)}
+
+  /* hero */
+  .hero{padding:76px 0 84px}
+  .hero h1 .l2{display:block}
+  .hero .sub{font-size:var(--fs-lead); color:var(--dim); font-weight:500; margin:28px 0 36px; line-height:1.5}
+  .hero .sub b{color:var(--ink); font-weight:800}
+  .btns{display:flex; flex-wrap:wrap; gap:12px}
+  .btn{display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:var(--fs-body); padding:16px 28px; border-radius:var(--r-pill); text-decoration:none; cursor:pointer; border:2px solid var(--navy); transition:transform var(--dur-press) var(--ease-out), box-shadow var(--dur-hover) var(--ease-out)}
+  .btn.primary{background:var(--navy); color:var(--yellow)}
+  .btn.ghost{background:transparent; color:var(--navy)}
+  .btn:active{transform:translateY(0) scale(.98)}
+  .btn:focus-visible{outline:3px solid var(--yellow-deep); outline-offset:3px}
+  .arw{display:inline-block; transition:transform var(--dur-hover) var(--ease-out)}
+  /* 터치 기기는 탭 시 가짜 hover가 발생 → 포인터 있는 기기만 */
+  @media(hover:hover) and (pointer:fine){
+    .btn:hover{transform:translateY(-2px); box-shadow:var(--sh-hover)}
+    .btn:hover .arw{transform:translateX(4px)}
+    .navlinks a:not(.apply):hover{color:var(--ink)}
+    .navlinks a:not(.apply):hover::after{transform:scaleX(1)}
+  }
+
+  /* hero two-col + animated mock
+     ↓ .hphone/.hscreen/.hbarr/.fcard 계열은 '실물 기기 형태' 묘사용 장식(aria-hidden).
+     디자인 토큰(radius 3종/shadow 3종) 적용 대상이 아니다 — 예외로 확정 (BOSS 2026-08-13) */
+  .hero .inner{display:grid; grid-template-columns:1fr; gap:44px; align-items:center}
+  @media(min-width:860px){.hero .inner{grid-template-columns:1.06fr .94fr}}
+  .hmock{position:relative; min-height:400px}
+  @media(max-width:859px){.hmock{min-height:340px}}
+  .hphone{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) rotate(6deg); width:196px; height:392px; border-radius:36px; background:linear-gradient(165deg,#0A174E,#070F35); border:8px solid #16245f; box-shadow:0 34px 70px rgba(10,23,78,.30); animation:hfloat 5.5s ease-in-out infinite}
+  .hscreen{position:absolute; inset:13px; border-radius:24px; background:#0c1850; overflow:hidden}
+  .hbarr{height:34px; background:rgba(245,208,66,.16); border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; padding:0 12px; gap:7px}
+  .hbarr i{width:8px; height:8px; border-radius:50%; background:var(--yellow)}
+  .hbarr span{font-size:9px; color:#AEB6DE; font-weight:800; letter-spacing:.12em}
+  .hfeed{display:flex; flex-direction:column; gap:11px; padding:12px; animation:feed 7s linear infinite}
+  .fcard{background:#12205e; border-radius:12px; padding:10px; flex:none}
+  .fcard .fimg{height:52px; border-radius:8px; background:linear-gradient(120deg,rgba(245,208,66,.95),rgba(245,208,66,.45)); margin-bottom:8px}
+  .fcard .fl{height:7px; border-radius:4px; background:rgba(255,255,255,.16); margin:5px 0}
+  .fcard .fl.s{width:55%}
+  .hbadge{position:absolute; z-index:3; font-weight:900; font-size:var(--fs-label); padding:8px 12px; border-radius:var(--r-pill); box-shadow:0 12px 26px rgba(10,23,78,.20); background:var(--yellow); color:var(--navy); animation:bfloat 5s ease-in-out infinite}
+  .hbadge.b1{top:6%; right:2%}
+  .hbadge.b2{bottom:12%; left:0; background:#fff; animation-duration:5.8s; animation-delay:.5s}
+  .hbadge.b3{bottom:42%; right:-3%; background:#fff; animation-duration:6.4s; animation-delay:1s}
+  @keyframes hfloat{0%,100%{transform:translate(-50%,-50%) rotate(6deg) translateY(0)}50%{transform:translate(-50%,-50%) rotate(6deg) translateY(-12px)}}
+  @keyframes bfloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  @keyframes feed{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+  @media(prefers-reduced-motion:reduce){.hphone,.hbadge,.hfeed{animation:none}}
+
+  /* big statement */
+  .statement .q{color:var(--ink); box-shadow:inset 0 -.13em 0 var(--yellow-deep); -webkit-box-decoration-break:clone; box-decoration-break:clone}
+  .statement .after{font-size:var(--fs-lead); font-weight:800; margin-top:24px}
+  .turn-sub{margin-top:24px; font-size:var(--fs-base); font-weight:500; line-height:1.55; color:#AEB6DE}
+  .turn{font-size:var(--fs-h2); font-weight:900; letter-spacing:-.035em; margin-top:16px; line-height:1.14; word-break:keep-all}
+  /* band: AI tools 3D tiles */
+  .turnband .inner{display:grid; grid-template-columns:1fr; gap:28px; align-items:start}
+  @media(min-width:600px){.turnband .inner{grid-template-columns:1.15fr .85fr; gap:24px}}
+  .ai3d{position:relative; min-height:250px; perspective:800px}
+  @media(max-width:859px){.ai3d{min-height:210px}}
+  .ai-tile{position:absolute; width:78px; height:78px; border-radius:var(--r-card); display:flex; align-items:center; justify-content:center; box-shadow:-10px 13px 24px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.28), inset 0 -7px 13px rgba(0,0,0,.16); transform:rotateX(12deg) rotateY(-16deg); animation:tilefloat 5s ease-in-out infinite}
+  .ai-tile svg{width:40px; height:40px}
+  .ai-tile .nm{position:absolute; left:50%; transform:translateX(-50%); bottom:-19px; font-size:var(--fs-micro); font-weight:800; color:#fff; white-space:nowrap; text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .ai-tile.claude{left:10%; top:4%; background:linear-gradient(150deg,#EDB187,#D97757); animation-delay:0s}
+  .ai-tile.gemini{left:40%; top:33%; width:90px; height:90px; z-index:2; background:linear-gradient(150deg,#5B8DEF,#8B5CF6); animation-delay:.5s}
+  .ai-tile.gemini svg{width:46px; height:46px}
+  .ai-tile.gpt{right:8%; top:60%; background:#0D0D0D; animation-delay:1s}
+  @keyframes tilefloat{0%,100%{transform:translateY(0) rotateX(12deg) rotateY(-16deg)}50%{transform:translateY(-11px) rotateX(12deg) rotateY(-9deg)}}
+  @media(prefers-reduced-motion:reduce){.ai-tile{animation:none}}
+
+  .lead-sub{color:var(--dim); font-size:var(--fs-body); line-height:1.6; margin:-8px 0 24px; max-width:620px}
+  .lead-sub b{color:var(--ink); font-weight:800}
+
+  /* value grid */
+  .grid{display:grid; grid-template-columns:1fr; gap:2px; background:var(--line); border:1px solid var(--line); border-radius:var(--r-card); overflow:hidden}
+  @media(min-width:620px){.grid.two{grid-template-columns:1fr 1fr}}
+  .cell{background:var(--paper); padding:32px 28px}
+  .cell h3{margin-bottom:12px}
+  .cell p{color:var(--dim); font-size:var(--fs-body); margin-top:4px}
+
+  /* navy band */
+  .band{background:var(--navy); color:var(--white)}
+  .band .eyebrow{color:#AEB6DE}
+  .band .eyebrow::before{background:var(--yellow)}
+  .band h2{color:#fff}
+  .band .dim{color:#AEB6DE}
+
+  /* channel hub */
+  .chan{display:grid; grid-template-columns:1fr; gap:16px; margin-top:8px}
+  @media(min-width:620px){.chan{grid-template-columns:1fr 1fr}}
+  .ch{display:flex; flex-direction:column; gap:16px; padding:32px 28px; border-radius:var(--r-card); background:var(--paper-2); border:1px solid var(--line); text-decoration:none; color:var(--ink); transition:transform var(--dur-hover) var(--ease-out), box-shadow var(--dur-hover) var(--ease-out)}
+  .ch:active{transform:translateY(0) scale(.995)}
+  .ch:focus-visible{outline:3px solid var(--yellow-deep); outline-offset:3px}
+  .ch .ico svg{transition:transform var(--dur-hover) var(--ease-out)}
+  .ch .go{transition:color var(--dur-hover) ease}
+  .ch .go::after{content:"→"; display:inline-block; margin-left:.35em; transition:transform var(--dur-hover) var(--ease-out)}
+  @media(hover:hover) and (pointer:fine){
+    .ch:hover{transform:translateY(-3px); box-shadow:var(--sh-card)}
+    .ch:hover .ico svg{transform:scale(1.08)}
+    .ch:hover .go::after{transform:translateX(5px)}
+    .cell{transition:background var(--dur-hover) ease}
+    .cell:hover{background:var(--paper-2)}
+  }
+  .ch .top{display:flex; align-items:center; gap:16px}
+  .ch .ico{flex:none; width:52px; height:52px; border-radius:var(--r-sm); display:flex; align-items:center; justify-content:center; background:var(--navy)}
+  .ch .ico svg{width:27px; height:27px}
+  .ch .nm{font-size:var(--fs-brand); font-weight:900; letter-spacing:-.03em; line-height:1.2}
+  .ch .hd{display:block; font-size:var(--fs-sm); font-weight:800; color:var(--dim); margin-top:3px}
+  .ch p{color:var(--dim); font-size:var(--fs-body)}
+  .ch .go{margin-top:auto; font-size:var(--fs-sm); font-weight:800; color:var(--navy)}
+  .soon{display:inline-block; margin-top:24px; font-size:var(--fs-sm); font-weight:800; color:var(--dim); background:var(--paper-2); border:1px solid var(--line); border-radius:var(--r-pill); padding:8px 16px}
+
+  /* class card (in band) */
+  .classcard{display:grid; grid-template-columns:1fr; gap:24px; align-items:center; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:var(--r-card); padding:32px 28px}
+  @media(min-width:720px){.classcard{grid-template-columns:1.25fr .75fr}}
+  .facts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
+  .facts li{display:grid; grid-template-columns:74px 1fr; gap:16px; font-size:var(--fs-body); color:#EAECF6; align-items:baseline}
+  .facts .lb{font-size:var(--fs-label); font-weight:900; letter-spacing:.1em; color:var(--yellow)}
+  .classcard .cta{display:flex; flex-direction:column; gap:10px}
+  .classcard .cta .btn{justify-content:center}
+  .classcard .cta .sub{font-size:var(--fs-sm); color:#AEB6DE; text-align:center; line-height:1.5}
+
+  /* stat band */
+  .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:32px 20px; margin-top:44px}
+  @media(min-width:680px){.stats{grid-template-columns:repeat(4,1fr)}}
+  .stat .n{font-size:var(--fs-stat); font-weight:900; letter-spacing:-.05em; line-height:1; color:var(--yellow); font-variant-numeric:tabular-nums}
+  .stat .u{font-size:var(--fs-sm); font-weight:800; color:#AEB6DE; margin-top:12px}
+
+  /* instructor */
+  .bio h2{margin-bottom:20px}
+  .bio .lead{font-size:var(--fs-mid); font-weight:900; letter-spacing:-.03em; line-height:1.25; margin-bottom:22px; text-wrap:balance}
+  .bio .lead .hl{color:var(--yellow-deep)}
+  .bio p{color:var(--dim); font-size:var(--fs-body); margin-bottom:12px; max-width:640px}
+  .bio .goal{margin-top:24px; padding-left:20px; border-left:4px solid var(--yellow-deep); color:var(--ink); font-size:var(--fs-lead); font-weight:800; line-height:1.45; word-break:keep-all}
+
+  /* final */
+  .final h2{color:#fff}
+  .final .note{color:#AEB6DE; margin:24px 0 32px; font-size:var(--fs-body); max-width:560px}
+  .foot{background:var(--navy); color:#7982AE; font-size:var(--fs-sm); padding:34px 24px; text-align:center; line-height:1.8; border-top:1px solid var(--navy-soft)}
+  .foot .wmf{height:19px; width:auto; display:block; margin:0 auto 12px}
+  .foot a{color:#AEB6DE; text-decoration:none; font-weight:800}
+  .foot a:hover{color:#fff}
+
+  /* reveal (progressive: only hides when JS marks .js)
+     transition이 아니라 animation을 쓰는 이유: stagger용 delay가 카드 hover
+     transition까지 늦추는 충돌을 피하기 위함. 리빌은 요소당 1회만 발생. */
+  .vrl.js .rv{opacity:0}
+  .vrl.js .rv.in{animation:rvIn var(--dur-rv) var(--ease-out) var(--rvd,0ms) both}
+  .vrl.js .hmock.rv.in{animation-name:rvInMock; animation-delay:180ms}
+  @keyframes rvIn{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
+  @keyframes rvInMock{from{opacity:0; transform:translateY(24px) scale(.97)} to{opacity:1; transform:none}}
+
+  @media (prefers-reduced-motion:reduce){
+    /* 움직임만 제거, 페이드는 유지(등장 인지에 도움) */
+    .vrl.js .rv.in,.vrl.js .hmock.rv.in{animation:rvFade .3s ease both}
+    @keyframes rvFade{from{opacity:0} to{opacity:1}}
+    .btn,.ch,.arw,.ch .go::after,.ch .ico svg,.navlinks a::after,.cell{transition:none}
+    .btn:hover,.ch:hover{transform:none}
+  }
+</style>
+<link rel="canonical" href="https://114316ddd.github.io/lazyboss-site/">
+<meta name="theme-color" content="#0A174E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="lazyboss">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:url" content="https://114316ddd.github.io/lazyboss-site/">
+<meta property="og:title" content="lazyboss — AI를 직원처럼, 사장님은 보스답게">
+<meta property="og:description" content="1인 사업자가 AI로 반복 업무와 콘텐츠를 자동화하는 법. 코딩 없이, 비개발자 눈높이로.">
+<meta property="og:image" content="https://114316ddd.github.io/lazyboss-site/assets/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="lazyboss — AI를 직원처럼, 사장님은 보스답게">
+<meta name="twitter:description" content="1인 사업자가 AI로 반복 업무와 콘텐츠를 자동화하는 법. 코딩 없이, 비개발자 눈높이로.">
+<meta name="twitter:image" content="https://114316ddd.github.io/lazyboss-site/assets/og.png">
+</head>
+<body>
+
+<div class="vrl">
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="inner">
+      <a class="brand" href="#top">
+        <img class="wm" src="assets/wordmark-navy.png" alt="lazyboss" width="400" height="87">
+        <em>AI를 직원처럼, 사장님은 보스답게</em>
+      </a>
+      <nav class="navlinks">
+        <a href="#about">소개</a>
+        <a href="#channels">채널</a>
+        <a href="#class">클래스</a>
+        <a class="apply" href="https://forms.gle/c5WQfEms36Qq94ME6">클래스 신청</a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="inner">
+      <div class="hcol" data-stagger>
+        <div class="eyebrow rv">lazyboss · 1인 사업자 AI 자동화</div>
+        <h1 class="rv">AI를 직원처럼,<span class="l2 hl">사장님은 보스답게.</span></h1>
+        <p class="sub rv">혼자 다 하는 사장님을 위한<br><b>반복 업무·콘텐츠 자동화.</b><br>코딩 몰라도 됩니다.<br>만드는 사람도 비개발자입니다.</p>
+        <div class="btns rv">
+          <a class="btn primary" href="#channels">채널 보러 가기 <span class="arw">→</span></a>
+          <a class="btn ghost" href="#class">8월 원데이 클래스</a>
+        </div>
+      </div>
+      <div class="hmock rv" aria-hidden="true">
+        <div class="hbadge b1">반복 업무 ✓</div>
+        <div class="hbadge b2">콘텐츠 ✓</div>
+        <div class="hbadge b3">하루 10분 ✓</div>
+        <div class="hphone">
+          <div class="hscreen">
+            <div class="hbarr"><i></i><span>AUTO POSTING</span></div>
+            <div class="hfeed">
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+              <div class="fcard"><div class="fimg"></div><div class="fl"></div><div class="fl s"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- STATEMENT -->
+  <section class="sec statement">
+    <div class="inner">
+      <div class="k-eyebrow rv">WHY LAZYBOSS</div>
+      <h2 class="rv">부지런하면 그냥 손으로 하죠.<br><span class="q">게을러서 자동화합니다.</span></h2>
+      <p class="after rv">사장님이 더 열심히 하는 대신,<br><span class="hl">AI가 대신 하게 만드는 쪽</span>을 다룹니다.</p>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="sec tight" id="about">
+    <div class="inner">
+      <div class="k-eyebrow rv">WHAT WE DO</div>
+      <h2 class="rv">게으른 보스가<br>다루는 것</h2>
+      <p class="lead-sub rv">직원 없이 혼자 하는 사장님 기준입니다.<br>거창한 AI 이론 말고, <b>오늘 내 일에 붙는 것</b>만 다룹니다.</p>
+      <div class="grid two" data-stagger>
+        <div class="cell"><h3>반복 업무 넘기기</h3><p>정리·문서·확인 같은 매번 똑같은 일. 한 번 세팅해두고 AI에게 시킵니다.</p></div>
+        <div class="cell"><h3>콘텐츠 자동화</h3><p>카드뉴스·숏폼 소재·글감. 손으로 만들던 걸 AI가 만들고, 사장님은 확인만 합니다.</p></div>
+        <div class="cell"><h3>코딩 없이</h3><p>말로 시키면 알아서 하는 도구(클로드 코드)를 씁니다. 코드를 배우는 자리가 아닙니다.</p></div>
+        <div class="cell"><h3>비개발자 눈높이</h3><p>만드는 사람도 개발자가 아닙니다. 그래서 비개발자가 어디서 막히는지 압니다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CORE MESSAGE BAND -->
+  <section class="sec band turnband">
+    <div class="inner">
+      <div class="tcol">
+        <div class="k-eyebrow rv">THE POINT</div>
+        <h2 class="rv">AI한테 질문만<br>하고 계신가요?</h2>
+        <p class="turn rv">물어보지 말고, <span class="hl">직원처럼 시키세요.</span></p>
+        <p class="turn-sub rv">답변을 받는 게 아니라, 일을 끝내게 하는 것.<br>그 차이 하나로 하루가 달라집니다.</p>
+      </div>
+      <div class="ai3d rv" aria-hidden="true">
+        <div class="ai-tile claude">
+          <svg viewBox="0 0 100 100"><g fill="#3A1E10"><rect x="45" y="12" width="10" height="76" rx="5"/><rect x="45" y="12" width="10" height="76" rx="5" transform="rotate(45 50 50)"/><rect x="45" y="12" width="10" height="76" rx="5" transform="rotate(90 50 50)"/><rect x="45" y="12" width="10" height="76" rx="5" transform="rotate(135 50 50)"/></g></svg>
+          <span class="nm">Claude</span>
+        </div>
+        <div class="ai-tile gemini">
+          <svg viewBox="0 0 100 100"><path fill="#fff" d="M50 6 C55 38 62 45 94 50 C62 55 55 62 50 94 C45 62 38 55 6 50 C38 45 45 38 50 6Z"/></svg>
+          <span class="nm">Gemini</span>
+        </div>
+        <div class="ai-tile gpt">
+          <svg viewBox="0 0 24 24" fill="#fff"><path d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.093zM13.2599 22.43a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6456zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997z"/></svg>
+          <span class="nm">ChatGPT</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHANNELS (1순위) -->
+  <section class="sec" id="channels">
+    <div class="inner">
+      <div class="k-eyebrow rv">CHANNELS</div>
+      <h2 class="rv">매일 쓰는 자동화,<br>여기에 올립니다</h2>
+      <p class="lead-sub rv">실제로 돌리고 있는 것만 올립니다.<br>따라 할 수 있는 것 위주로, <b>짧게 자주</b>.</p>
+      <div class="chan" data-stagger>
+        <!-- TODO: 핸들 확정되면 아래 href·@핸들 교체 (브리핑 7번) -->
+        <a class="ch" href="https://www.threads.net/@lazyboss.kr" target="_blank" rel="noopener">
+          <div class="top">
+            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#F5D042" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 11.2c-.3-3-2.1-4.3-4.4-4.3-1.7 0-3 .7-3.8 2"/><path d="M12.1 21c-4.6 0-7.4-3-7.4-9s2.9-9 7.5-9c3.6 0 6.1 1.8 6.9 4.7"/><path d="M18.9 12.6c1.4.7 2.2 1.8 2.2 3.3 0 3-2.6 5.1-6.4 5.1"/><path d="M15.9 11.6c-1-.4-2.2-.6-3.5-.5-2.1.1-3.5 1.1-3.4 2.7.1 1.4 1.3 2.3 3 2.2 2.2-.1 3.6-1.5 3.9-4.4z"/></svg></span>
+            <span><span class="nm">쓰레드</span><span class="hd">@lazyboss.kr</span></span>
+          </div>
+          <p>자동화하다 겪은 것, 실패한 것, 오늘 시킨 것.<br>가장 자주 올라오는 채널입니다.</p>
+          <span class="go">팔로우하기</span>
+        </a>
+        <a class="ch" href="https://www.instagram.com/lazyboss.kr" target="_blank" rel="noopener">
+          <div class="top">
+            <span class="ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#F5D042" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5.4"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.4" cy="6.6" r="1.15" fill="#F5D042" stroke="none"/></svg></span>
+            <span><span class="nm">인스타그램</span><span class="hd">@lazyboss.kr</span></span>
+          </div>
+          <p>카드뉴스로 정리한 자동화 사례.<br>저장해두고 그대로 따라 하기 좋게 만듭니다.</p>
+          <span class="go">팔로우하기</span>
+        </a>
+      </div>
+      <p class="soon rv">계정 개설 중 — 핸들 확정되면 링크가 연결됩니다.</p>
+    </div>
+  </section>
+
+  <!-- CLASS (2순위) -->
+  <section class="sec band" id="class">
+    <div class="inner">
+      <div class="k-eyebrow rv">HAPPENING NOW</div>
+      <h2 class="rv">지금 하는 것 —<br>천안·아산 원데이 클래스</h2>
+      <p class="dim rv" style="max-width:600px;margin-bottom:34px">클로드 코드로 업무와 콘텐츠를 자동화합니다.<br>듣기만 하는 강의가 아니라, 노트북 열고 같이 만드는 자리입니다.</p>
+      <div class="classcard rv">
+        <ul class="facts" data-stagger>
+          <li><span class="lb">일정</span><span>8월 27일(목) 저녁 7시 · 8월 29일(토) 오전 9시 중 택1</span></li>
+          <li><span class="lb">대상</span><span>천안·아산 1인 사업자</span></li>
+          <li><span class="lb">정원</span><span>회차당 5명 (소수정예 실습)</span></li>
+          <li><span class="lb">참가비</span><span>10만원</span></li>
+          <li><span class="lb">준비물</span><span>노트북 필수 · 클로드 유료구독 별도</span></li>
+          <li><span class="lb">장소</span><span>천안 시내 (확정 후 개별 안내)</span></li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">신청하기 <span class="arw">→</span></a>
+          <!-- TODO: 배포 시 클래스 랜딩 실제 URL로 교체 (현재 로컬 상대경로) -->
+          <a class="btn ghost" href="class/" style="border-color:rgba(255,255,255,.5);color:#fff">클래스 자세히 보기</a>
+          <span class="sub">신청폼 작성 → 계좌 안내 문자 → 입금 확인 → 참석 확정</span>
+        </div>
+      </div>
+      <div class="stats" data-stagger>
+        <div class="stat"><div class="n"><span data-count="2">2</span>회차</div><div class="u">8/27 · 8/29 택1</div></div>
+        <div class="stat"><div class="n"><span data-count="5">5</span>명</div><div class="u">회차당 정원</div></div>
+        <div class="stat"><div class="n"><span data-count="0">0</span>줄</div><div class="u">필요한 코딩</div></div>
+        <div class="stat"><div class="n"><span data-count="10">10</span>분</div><div class="u">세팅 후 하루 관리</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BIO -->
+  <section class="sec tight bio">
+    <div class="inner">
+      <div class="k-eyebrow rv">WHO IS LAZYBOSS</div>
+      <p class="lead rv">만드는 사람도 개발자가 아닙니다.<br><span class="hl">코딩 전공도 아니고요.</span></p>
+      <p class="rv">혼자 일하는 1인 사업자입니다. 할 일은 많고 사람은 없어서, 손으로 하던 걸 하나씩 AI에게 넘겼습니다. 툴을 직접 붙잡고 익혔고, 지금은 자동화로 매일 콘텐츠를 만들고 있습니다.</p>
+      <p class="rv">그래서 비개발자가 어디서 막히는지 압니다. 어려운 말은 빼고, 사장님 눈높이로만 이야기합니다.</p>
+      <p class="goal rv">게으른 보스가 하려는 건 하나입니다.<br><span class="hl">사장님이 스스로 내 업무에 AI를 붙이는 것.</span></p>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="sec band final">
+    <div class="inner">
+      <div class="k-eyebrow rv">START HERE</div>
+      <h2 class="rv">일단 채널부터<br>구경해 보세요.</h2>
+      <p class="note rv">매일 쓰는 자동화를 짧게 올립니다. 보고 마음에 들면,<br>8월 원데이 클래스에서 직접 만들어 가시면 됩니다.</p>
+      <div class="btns rv">
+        <a class="btn primary" href="#channels" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">채널 보러 가기 <span class="arw">→</span></a>
+        <a class="btn ghost" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:rgba(255,255,255,.5);color:#fff">클래스 신청하기</a>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    <img class="wmf" src="assets/wordmark-yellow.png" alt="lazyboss" width="400" height="87">
+    AI를 직원처럼, 사장님은 보스답게<br>
+    AI automation for solo business owners · Cheonan &amp; Asan, Korea<br>
+    <a href="https://www.threads.net/@lazyboss.kr" target="_blank" rel="noopener">Threads</a> ·
+    <a href="https://www.instagram.com/lazyboss.kr" target="_blank" rel="noopener">Instagram</a>
+  </p>
+
+</div>
+
+<script>
+(function(){
+  var root=document.querySelector('.vrl'); if(root) root.classList.add('js');
+
+  // [data-stagger] 컨테이너의 자식들은 순서대로 늦게 등장 (한 번에 다 뜨는 것 방지)
+  [].slice.call(document.querySelectorAll('[data-stagger]')).forEach(function(group){
+    [].slice.call(group.children).forEach(function(kid,i){
+      kid.classList.add('rv');
+      kid.style.setProperty('--rvd',(i*70)+'ms');
+    });
+  });
+
+  var rvs=[].slice.call(document.querySelectorAll('.rv'));
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+  },{threshold:.14});
+  rvs.forEach(function(el){io.observe(el);});
+
+  // count up
+  function countUp(el){
+    var t=parseInt(el.getAttribute('data-count'),10), s=null, dur=1100;
+    el.textContent='0';
+    function step(ts){ if(!s)s=ts; var p=Math.min((ts-s)/dur,1); el.textContent=Math.round(p*t); if(p<1)requestAnimationFrame(step); }
+    requestAnimationFrame(step);
+  }
+  // 스크롤 시작하면 상단바에 그림자 (붙어있다는 상태 표시)
+  var nav=document.querySelector('.nav');
+  if(nav){
+    var ticking=false;
+    addEventListener('scroll',function(){
+      if(ticking) return; ticking=true;
+      requestAnimationFrame(function(){ nav.classList.toggle('stuck', scrollY>12); ticking=false; });
+    },{passive:true});
+  }
+
+  var counts=[].slice.call(document.querySelectorAll('[data-count]'));
+  var io2=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ countUp(e.target); io2.unobserve(e.target);} }); },{threshold:.5});
+  counts.forEach(function(el){io2.observe(el);});
+})();
+</script>
+
+</body>
+</html>

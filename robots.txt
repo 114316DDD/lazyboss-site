@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://114316ddd.github.io/lazyboss-site/sitemap.xml
