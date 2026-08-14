@@ -16,7 +16,8 @@
     /* motion tokens */
     --ease-out:cubic-bezier(.23,1,.32,1);
     --ease-in-out:cubic-bezier(.77,0,.175,1);
-    --dur-press:120ms; --dur-hover:180ms; --dur-rv:520ms;
+    --ease-expo:cubic-bezier(.16,1,.3,1);
+    --dur-press:120ms; --dur-hover:180ms; --dur-rv:900ms;
     /* type scale — 12단계 고정. 새 값 추가 금지(레퍼런스 vrl.co.kr 17종 대비 절제) */
     --fs-h1:clamp(36px,6.6vw,64px); --fs-h2:clamp(30px,6vw,52px); --fs-mid:clamp(22px,4vw,32px);
     --fs-stat:clamp(38px,7vw,62px); --fs-lead:clamp(18px,2.6vw,22px);
@@ -186,16 +187,16 @@
   /* class card (in band) */
   .classcard{display:grid; grid-template-columns:1fr; gap:24px; align-items:center; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:var(--r-card); padding:32px 28px}
   @media(min-width:720px){.classcard{grid-template-columns:1.25fr .75fr}}
-  .facts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
-  .facts li{display:grid; grid-template-columns:74px 1fr; gap:16px; font-size:var(--fs-body); color:#EAECF6; align-items:baseline}
-  .facts .lb{font-size:var(--fs-label); font-weight:900; letter-spacing:.1em; color:var(--yellow)}
+  .pitch .big{font-size:var(--fs-mid); font-weight:900; letter-spacing:-.035em; line-height:1.18; color:#fff; margin:0; word-break:keep-all}
+  .pitch .turn{font-size:var(--fs-mid); margin-top:14px; color:#fff}
+  .pitch .after{color:#AEB6DE; font-size:var(--fs-body); margin:20px 0 0; line-height:1.6; word-break:keep-all}
   .classcard .cta{display:flex; flex-direction:column; gap:10px}
   .classcard .cta .btn{justify-content:center}
   .classcard .cta .sub{font-size:var(--fs-sm); color:#AEB6DE; text-align:center; line-height:1.5}
 
   /* stat band */
   .stats{display:grid; grid-template-columns:repeat(2,1fr); gap:32px 20px; margin-top:44px}
-  @media(min-width:680px){.stats{grid-template-columns:repeat(4,1fr)}}
+  @media(min-width:680px){.stats{grid-template-columns:repeat(3,1fr)}}
   .stat .n{font-size:var(--fs-stat); font-weight:900; letter-spacing:-.05em; line-height:1; color:var(--yellow); font-variant-numeric:tabular-nums}
   .stat .u{font-size:var(--fs-sm); font-weight:800; color:#AEB6DE; margin-top:12px}
 
@@ -218,7 +219,10 @@
      transition이 아니라 animation을 쓰는 이유: stagger용 delay가 카드 hover
      transition까지 늦추는 충돌을 피하기 위함. 리빌은 요소당 1회만 발생. */
   .vrl.js .rv{opacity:0}
-  .vrl.js .rv.in{animation:rvIn var(--dur-rv) var(--ease-out) var(--rvd,0ms) both}
+  .vrl.js .rv.in{animation:rvIn var(--dur-rv) var(--ease-expo) var(--rvd,0ms) both}
+  /* 스크롤 진행바 */
+  .sprog{position:fixed; top:0; left:0; right:0; height:3px; z-index:60; pointer-events:none}
+  .sprog i{display:block; height:100%; width:100%; background:var(--yellow); transform:scaleX(0); transform-origin:left center}
   .vrl.js .hmock.rv.in{animation-name:rvInMock; animation-delay:180ms}
   @keyframes rvIn{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none}}
   @keyframes rvInMock{from{opacity:0; transform:translateY(24px) scale(.97)} to{opacity:1; transform:none}}
@@ -251,6 +255,9 @@
 
 <div class="vrl">
 
+  <!-- 스크롤 진행바 -->
+  <div class="sprog" aria-hidden="true"><i id="sprogbar"></i></div>
+
   <!-- NAV -->
   <div class="nav">
     <div class="inner">
@@ -276,7 +283,7 @@
         <p class="sub rv">혼자 다 하는 사장님을 위한<br><b>반복 업무·콘텐츠 자동화.</b><br>코딩 몰라도 됩니다.<br>만드는 사람도 비개발자입니다.</p>
         <div class="btns rv">
           <a class="btn primary" href="#channels">채널 보러 가기 <span class="arw">→</span></a>
-          <a class="btn ghost" href="#class">8월 원데이 클래스</a>
+          <a class="btn ghost" href="#class">원데이 클래스</a>
         </div>
       </div>
       <div class="hmock rv" aria-hidden="true">
@@ -386,14 +393,11 @@
       <h2 class="rv">지금 하는 것 —<br>천안·아산 원데이 클래스</h2>
       <p class="dim rv" style="max-width:600px;margin-bottom:34px">클로드 코드로 업무와 콘텐츠를 자동화합니다.<br>듣기만 하는 강의가 아니라, 노트북 열고 같이 만드는 자리입니다.</p>
       <div class="classcard rv">
-        <ul class="facts" data-stagger>
-          <li><span class="lb">일정</span><span>8월 27일(목) 저녁 7시 · 8월 29일(토) 오전 9시 중 택1</span></li>
-          <li><span class="lb">대상</span><span>천안·아산 1인 사업자</span></li>
-          <li><span class="lb">정원</span><span>회차당 5명 (소수정예 실습)</span></li>
-          <li><span class="lb">참가비</span><span>10만원</span></li>
-          <li><span class="lb">준비물</span><span>노트북 필수 · 클로드 유료구독 별도</span></li>
-          <li><span class="lb">장소</span><span>천안 시내 (확정 후 개별 안내)</span></li>
-        </ul>
+        <div class="pitch" data-stagger>
+          <p class="big">이 클래스가 하는 일은<br>하나입니다.</p>
+          <p class="turn">사장님의 반복 업무를 <span class="arw">→</span><br><span class="hl">알아서 돌아가는 시스템</span>으로.</p>
+          <p class="after">거창한 시스템이 아닙니다.<br>매번 손 가던 일 하나를 대신 돌게 만드는 것부터입니다.</p>
+        </div>
         <div class="cta">
           <a class="btn primary" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">신청하기 <span class="arw">→</span></a>
           <!-- TODO: 배포 시 클래스 랜딩 실제 URL로 교체 (현재 로컬 상대경로) -->
@@ -402,7 +406,6 @@
         </div>
       </div>
       <div class="stats" data-stagger>
-        <div class="stat"><div class="n"><span data-count="2">2</span>회차</div><div class="u">8/27 · 8/29 택1</div></div>
         <div class="stat"><div class="n"><span data-count="5">5</span>명</div><div class="u">회차당 정원</div></div>
         <div class="stat"><div class="n"><span data-count="0">0</span>줄</div><div class="u">필요한 코딩</div></div>
         <div class="stat"><div class="n"><span data-count="10">10</span>분</div><div class="u">세팅 후 하루 관리</div></div>
@@ -426,7 +429,7 @@
     <div class="inner">
       <div class="k-eyebrow rv">START HERE</div>
       <h2 class="rv">일단 채널부터<br>구경해 보세요.</h2>
-      <p class="note rv">매일 쓰는 자동화를 짧게 올립니다. 보고 마음에 들면,<br>8월 원데이 클래스에서 직접 만들어 가시면 됩니다.</p>
+      <p class="note rv">매일 쓰는 자동화를 짧게 올립니다. 보고 마음에 들면,<br>원데이 클래스에서 직접 만들어 가시면 됩니다.</p>
       <div class="btns rv">
         <a class="btn primary" href="#channels" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">채널 보러 가기 <span class="arw">→</span></a>
         <a class="btn ghost" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:rgba(255,255,255,.5);color:#fff">클래스 신청하기</a>
@@ -452,9 +455,22 @@
   [].slice.call(document.querySelectorAll('[data-stagger]')).forEach(function(group){
     [].slice.call(group.children).forEach(function(kid,i){
       kid.classList.add('rv');
-      kid.style.setProperty('--rvd',(i*70)+'ms');
+      kid.style.setProperty('--rvd',(i*110)+'ms');
     });
   });
+
+  // 스크롤 진행바
+  var bar=document.getElementById('sprogbar');
+  if(bar){
+    var ticking=false;
+    function draw(){
+      var max=document.documentElement.scrollHeight-window.innerHeight;
+      bar.style.transform='scaleX('+(max>0?Math.min(window.scrollY/max,1):0)+')';
+      ticking=false;
+    }
+    addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(draw); } },{passive:true});
+    addEventListener('resize',draw); draw();
+  }
 
   var rvs=[].slice.call(document.querySelectorAll('.rv'));
   var io=new IntersectionObserver(function(es){

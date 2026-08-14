@@ -15,7 +15,8 @@
     --line:rgba(10,23,78,.14); --white:#FFFFFF;
     /* motion */
     --ease-out:cubic-bezier(.23,1,.32,1);
-    --dur-press:120ms; --dur-hover:180ms; --dur-rv:520ms;
+    --ease-expo:cubic-bezier(.16,1,.3,1);
+    --dur-press:120ms; --dur-hover:180ms; --dur-rv:900ms;
     /* type scale — 브랜드 홈(웹사이트/index.html)과 동일한 12단계. 새 값 추가 금지 */
     --fs-h1:clamp(36px,6.6vw,64px); --fs-h2:clamp(30px,6vw,52px); --fs-mid:clamp(22px,4vw,32px);
     --fs-stat:clamp(38px,7vw,62px); --fs-lead:clamp(18px,2.6vw,22px);
@@ -295,19 +296,74 @@
   .qa.open .ans{grid-template-rows:1fr}
   .qa .ans p{color:var(--dim); font-size:var(--fs-body); padding:4px 40px 26px 0; line-height:1.65}
 
+  /* 스크롤 진행바 — 상단 고정, 읽은 만큼 채워진다 */
+  .sprog{position:fixed; top:0; left:0; right:0; height:3px; z-index:60; background:transparent; pointer-events:none}
+  .sprog i{display:block; height:100%; width:100%; background:var(--yellow); transform:scaleX(0); transform-origin:left center}
+
+  /* 하단 고정 신청 pill — 히어로·최종 섹션에서는 숨는다 */
+  .fab{position:fixed; left:50%; bottom:22px; z-index:55; transform:translate(-50%,140%); opacity:0;
+       transition:transform .5s var(--ease-expo), opacity .35s ease; pointer-events:none}
+  .fab.show{transform:translate(-50%,0); opacity:1; pointer-events:auto}
+  .fab a{display:inline-flex; align-items:center; gap:10px; background:var(--yellow); color:var(--navy);
+         font-weight:900; font-size:var(--fs-body); letter-spacing:-.02em; padding:15px 26px; border-radius:var(--r-pill);
+         text-decoration:none; box-shadow:0 14px 34px rgba(10,23,78,.30); border:2px solid var(--yellow);
+         transition:transform var(--dur-press) var(--ease-out)}
+  .fab a:hover{transform:translateY(-2px)}
+  .fab .fp{font-weight:700; opacity:.72; font-size:var(--fs-sm)}
+
+  /* 히어로 스펙 카드 — 스크롤 전에 날짜·정원·참가비 판단 */
+  /* 모바일에서는 스펙 카드를 목업보다 위로 (접히기 전에 조건이 보이게) */
+  @media(max-width:859px){.hspec{order:2}.hmock{order:3}}
+  .hspec{grid-column:1/-1; margin-top:4px; background:var(--white); border:1px solid var(--line); border-radius:var(--r-card);
+         box-shadow:var(--sh-nav); padding:20px 22px}
+  .hspec .hs-top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px}
+  .hspec .hs-nm{font-size:var(--fs-sm); font-weight:800; color:var(--ink)}
+  .hspec .hs-tag{font-size:var(--fs-label); font-weight:900; background:var(--yellow); color:var(--navy); padding:5px 10px; border-radius:var(--r-pill)}
+  .hspec .hs-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; padding-top:16px; border-top:1px solid var(--line)}
+  .hspec .hs-k{font-size:var(--fs-label); font-weight:700; color:var(--dim); margin-bottom:6px}
+  .hspec .hs-v{font-size:var(--fs-h3); font-weight:900; letter-spacing:-.03em; color:var(--ink)}
+  .hspec .hs-note{margin-top:16px; font-size:var(--fs-sm); color:var(--dim)}
+  @media(max-width:520px){.hspec .hs-v{font-size:var(--fs-base)}.hspec .hs-grid{gap:8px}}
+
+  /* 마퀴 — 핵심 조건 반복 노출 */
+  .mq{background:var(--navy); color:#fff; overflow:hidden; padding:14px 0; border-top:1px solid var(--navy-soft); border-bottom:1px solid var(--navy-soft)}
+  .mq-track{display:flex; width:max-content; animation:mqroll 34s linear infinite}
+  .mq-track span{display:inline-flex; align-items:center; font-size:var(--fs-sm); font-weight:800; letter-spacing:-.01em; white-space:nowrap; padding:0 26px}
+  .mq-track span::after{content:""; width:5px; height:5px; border-radius:var(--r-pill); background:var(--yellow); margin-left:26px}
+  @keyframes mqroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+  @media(prefers-reduced-motion:reduce){.mq-track{animation:none}}
+
+  /* 준비물 */
+  .prep{display:grid; grid-template-columns:1fr; gap:16px}
+  @media(min-width:720px){.prep{grid-template-columns:1fr 1fr}}
+  .prep .pc{background:var(--white); border:1px solid var(--line); border-radius:var(--r-card); padding:24px 22px; box-shadow:var(--sh-nav)}
+  .prep .pt{display:inline-block; font-size:var(--fs-label); font-weight:900; letter-spacing:.04em; padding:5px 11px; border-radius:var(--r-pill); margin-bottom:14px}
+  .prep .pt.must{background:var(--navy); color:var(--yellow)}
+  .prep .pt.rec{background:var(--paper-2); color:var(--dim)}
+  .prep .pc h3{margin:0 0 8px}
+  .prep .pc p{color:var(--dim); font-size:var(--fs-body); margin:0; line-height:1.65}
+
   /* final */
   .final h2{color:#fff}
   .final .note{color:#AEB6DE; margin:24px 0 32px; font-size:var(--fs-body); max-width:560px}
   .final .contact{color:#AEB6DE; font-size:var(--fs-sm); margin-top:22px}
+  .classcard{display:grid; grid-template-columns:1fr; gap:24px; align-items:center; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:var(--r-card); padding:32px 28px}
+  @media(min-width:720px){.classcard{grid-template-columns:1.25fr .75fr}}
+  .facts{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:12px}
+  .facts li{display:grid; grid-template-columns:74px 1fr; gap:16px; font-size:var(--fs-body); color:#EAECF6; align-items:baseline}
+  .facts .lb{font-size:var(--fs-label); font-weight:900; letter-spacing:.1em; color:var(--yellow)}
+  .classcard .cta{display:flex; flex-direction:column; gap:10px}
+  .classcard .cta .btn{justify-content:center}
+  .classcard .cta .sub{font-size:var(--fs-sm); color:#AEB6DE; text-align:center; line-height:1.5}
   .foot{background:var(--navy); color:#7982AE; font-size:var(--fs-sm); padding:34px 24px; text-align:center; line-height:1.8; border-top:1px solid var(--navy-soft)}
   .foot .wmf{height:19px; width:auto; display:block; margin:0 auto 12px}
 
   /* reveal (progressive: only hides when JS marks .js) */
-  .vrl.js .rv{opacity:0; transform:translateY(22px); transition:opacity .7s ease, transform .7s ease}
+  .vrl.js .rv{opacity:0; transform:translateY(22px); transition:opacity var(--dur-rv) var(--ease-expo), transform var(--dur-rv) var(--ease-expo)}
   .vrl.js .rv.in{opacity:1; transform:none}
   .vrl.js .term .row{opacity:0; transform:translateY(6px)}
   .vrl.js .term .row.show{opacity:1; transform:none}
-  @media (prefers-reduced-motion:reduce){.vrl.js .rv{opacity:1; transform:none; transition:none}.btn{transition:none}.qa .ans{transition:none}.qa .plus{transition:none}.term .row{transition:none}.term .cursor{animation:none}}
+  @media (prefers-reduced-motion:reduce){.vrl.js .rv{opacity:1; transform:none; transition:none}.btn{transition:none}.qa .ans{transition:none}.qa .plus{transition:none}.term .row{transition:none}.term .cursor{animation:none}.fab{transition:none}}
 </style>
 <link rel="canonical" href="https://lazyboss.vercel.app/class/">
 <meta name="theme-color" content="#0A174E">
@@ -329,6 +385,9 @@
 
 <div class="vrl">
 
+  <!-- 스크롤 진행바 -->
+  <div class="sprog" aria-hidden="true"><i id="sprogbar"></i></div>
+
   <!-- NAV -->
   <div class="nav">
     <div class="inner">
@@ -339,6 +398,7 @@
       <nav class="navlinks">
         <a href="#get">가져가는 것</a>
         <a href="#how">진행·일정</a>
+        <a href="#prep">준비물</a>
         <a href="#faq">FAQ</a>
         <a class="apply" href="https://forms.gle/c5WQfEms36Qq94ME6">신청하기</a>
       </nav>
@@ -375,8 +435,28 @@
           </div>
         </div>
       </div>
+      <div class="hspec rv">
+        <div class="hs-top">
+          <span class="hs-nm">업무·콘텐츠 자동화 원데이 클래스</span>
+          <span class="hs-tag">하루 완성</span>
+        </div>
+        <div class="hs-grid">
+          <div><div class="hs-k">일정</div><div class="hs-v">8/27 · 8/29</div></div>
+          <div><div class="hs-k">정원</div><div class="hs-v">5명</div></div>
+          <div><div class="hs-k">참가비</div><div class="hs-v">10만원</div></div>
+        </div>
+        <p class="hs-note">천안 시내 · 두 회차 같은 수업이라 편한 날로 고르시면 됩니다.</p>
+      </div>
     </div>
   </header>
+
+  <!-- 조건 마퀴 -->
+  <div class="mq" aria-hidden="true">
+    <div class="mq-track">
+      <span>8월 27일(목) 저녁 7시</span><span>8월 29일(토) 오전 9시</span><span>천안 시내</span><span>회차당 5명</span><span>참가비 10만원</span><span>노트북 필수</span><span>코딩 0줄</span>
+      <span>8월 27일(목) 저녁 7시</span><span>8월 29일(토) 오전 9시</span><span>천안 시내</span><span>회차당 5명</span><span>참가비 10만원</span><span>노트북 필수</span><span>코딩 0줄</span>
+    </div>
+  </div>
 
   <!-- PAIN — 실패 인용 -->
   <section class="sec tight">
@@ -555,6 +635,21 @@
     </div>
   </section>
 
+  <!-- 준비물 -->
+  <section class="sec" id="prep">
+    <div class="inner">
+      <div class="k-eyebrow rv">BEFORE YOU COME</div>
+      <h2 class="rv">챙겨 오실 것</h2>
+      <p class="lead-sub rv">두 가지만 준비되면 됩니다. 나머지는 현장에서 같이 합니다.</p>
+      <div class="prep rv" data-stagger>
+        <div class="pc rv"><span class="pt must">필수</span><h3>노트북</h3><p>맥·윈도우 둘 다 됩니다. 충전기도 같이 챙겨 오세요. 없으면 실습을 못 해서 참석이 어렵습니다.</p></div>
+        <div class="pc rv"><span class="pt must">필수</span><h3>클로드 유료 구독</h3><p>무료 요금제로는 수업에서 다루는 기능이 열리지 않습니다. 결제 방법을 모르시면 시작 전에 같이 봐드립니다.</p></div>
+        <div class="pc rv"><span class="pt rec">권장</span><h3>자동화하고 싶은 내 업무 하나</h3><p>매주 손으로 반복하던 일을 하나 들고 오세요. 예시로 배우는 것보다 내 일로 배우는 게 훨씬 빨리 붙습니다.</p></div>
+        <div class="pc rv"><span class="pt rec">권장</span><h3>운영 중인 SNS 계정</h3><p>콘텐츠 자동화를 본인 계정으로 바로 돌려보려면 있으면 좋습니다. 없어도 진행은 됩니다.</p></div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- RECO -->
   <section class="sec">
@@ -610,14 +705,32 @@
   </section>
 
   <!-- FINAL -->
-  <section class="sec band final">
+  <section class="sec band final" id="final">
     <div class="inner">
       <div class="k-eyebrow rv">JOIN THE CLASS</div>
-      <h2 class="rv">천안·아산, 8월 27·29일.<br>회차당 <span class="hl">단 5명</span>뿐입니다.</h2>
-      <p class="note rv"><b style="color:#fff">8월 27일(목) 저녁 7시</b> · <b style="color:#fff">8월 29일(토) 오전 9시</b> 중 택1<br>참가비 <span class="hl">10만원</span> · 회차당 정원 5명 · 노트북 필수<br><span style="opacity:.8">신청폼 작성 → 계좌 입금 확인 → 확정 문자</span></p>
-      <div class="btns rv"><a class="btn primary" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">신청하기 →</a></div>
+      <h2 class="rv">천안·아산 원데이 클래스</h2>
+      <p class="note rv">클로드 코드로 업무와 콘텐츠를 자동화합니다.<br>듣기만 하는 강의가 아니라, 노트북 열고 같이 만드는 자리입니다.</p>
+      <div class="classcard rv">
+        <ul class="facts" data-stagger>
+          <li><span class="lb">일정</span><span>8월 27일(목) 저녁 7시 · 8월 29일(토) 오전 9시 중 택1</span></li>
+          <li><span class="lb">대상</span><span>천안·아산 1인 사업자</span></li>
+          <li><span class="lb">정원</span><span>회차당 5명 (소수정예 실습)</span></li>
+          <li><span class="lb">참가비</span><span>10만원</span></li>
+          <li><span class="lb">준비물</span><span>노트북 필수 · 클로드 유료구독 별도</span></li>
+          <li><span class="lb">장소</span><span>천안 시내 (확정 후 개별 안내)</span></li>
+        </ul>
+        <div class="cta">
+          <a class="btn primary" href="https://forms.gle/c5WQfEms36Qq94ME6" style="border-color:var(--yellow);background:var(--yellow);color:var(--navy)">신청하기 <span class="arw">→</span></a>
+          <span class="sub">신청폼 작성 → 계좌 안내 문자 → 입금 확인 → 참석 확정</span>
+        </div>
+      </div>
     </div>
   </section>
+
+  <!-- 하단 고정 신청 -->
+  <div class="fab" id="fab">
+    <a href="https://forms.gle/c5WQfEms36Qq94ME6">신청하기 <span class="fp">10만원 · 정원 5명</span> →</a>
+  </div>
 
   <p class="foot">
     <img class="wmf" src="../assets/wordmark-yellow.png" alt="lazyboss" width="400" height="87">
@@ -638,9 +751,32 @@
   // 그룹 안 요소는 순차 등장 (data-stagger)
   [].slice.call(document.querySelectorAll('[data-stagger]')).forEach(function(g){
     [].slice.call(g.querySelectorAll('.rv')).forEach(function(el,i){
-      el.style.transitionDelay=(i*90)+'ms';
+      el.style.transitionDelay=(i*110)+'ms';
     });
   });
+
+  // 스크롤 진행바
+  var bar=document.getElementById('sprogbar');
+  if(bar){
+    var ticking=false;
+    function draw(){
+      var max=document.documentElement.scrollHeight-window.innerHeight;
+      var p=max>0?Math.min(window.scrollY/max,1):0;
+      bar.style.transform='scaleX('+p+')';
+      ticking=false;
+    }
+    addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(draw); } },{passive:true});
+    addEventListener('resize',draw); draw();
+  }
+
+  // 하단 고정 신청 pill — 히어로를 지나면 나오고, 마지막 신청 섹션에서는 숨는다
+  var fab=document.getElementById('fab'), hero=document.getElementById('top'), fin=document.getElementById('final');
+  if(fab&&hero&&fin){
+    var pastHero=false, atEnd=false;
+    function sync(){ fab.classList.toggle('show', pastHero && !atEnd); }
+    new IntersectionObserver(function(es){ pastHero=!es[0].isIntersecting; sync(); },{threshold:0}).observe(hero);
+    new IntersectionObserver(function(es){ atEnd=es[0].isIntersecting; sync(); },{threshold:.08}).observe(fin);
+  }
 
   // count up
   function countUp(el){
